@@ -551,14 +551,16 @@ endif
 # Extra Source Files                                                           #
 #==============================================================================#
 
-# Luigi and wario sounds don't work on 32-bit right now
-# And the audio code is so terrible I don't care enough to figure it out at the moment
+# Currently Luigi, Wario, and Toad's voices don't work on 32-bit
+# We need to fix this in the future - This is a reminder to ManIsCat2 from xLuigiGamerx
 ifeq ($(TARGET_BITS), 32)
 ifeq ($(TARGET_FOSS),0)
   _ := $(shell rm -rf sound/samples/sfx_custom_luigi/*.aiff)
   _ := $(shell rm -rf sound/samples/sfx_custom_luigi_peach/*.aiff)
   _ := $(shell rm -rf sound/samples/sfx_custom_wario/*.aiff)
   _ := $(shell rm -rf sound/samples/sfx_custom_wario_peach/*.aiff)
+  _ := $(shell rm -rf sound/samples/sfx_custom_toad/*.aiff)
+  _ := $(shell rm -rf sound/samples/sfx_custom_toad_peach/*.aiff)
 
 # Copy missing character sounds from mario sound banks
 _ := $(shell $(PYTHON) $(TOOLS_DIR)/copy_mario_sounds.py)
@@ -1138,7 +1140,7 @@ endif
 
 IS_DEV_OR_DEBUG := $(or $(filter 1,$(DEVELOPMENT)),$(filter 1,$(DEBUG)),0)
 ifeq ($(IS_DEV_OR_DEBUG),0)
-  CFLAGS += -fno-ident -fno-common -ffile-prefix-map=$(PWD)=. -D__DATE__="\"\"" -D__TIME__="\"\"" -Wno-builtin-macro-redefined
+  CFLAGS += -fno-ident -fno-common -ffile-prefix-map="$(PWD)"=. -D__DATE__="\"\"" -D__TIME__="\"\"" -Wno-builtin-macro-redefined
   LDFLAGS += -Wl,--build-id=none
 endif
 

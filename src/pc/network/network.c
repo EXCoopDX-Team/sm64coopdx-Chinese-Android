@@ -117,7 +117,9 @@ bool network_init(enum NetworkType inNetworkType, bool reconnecting) {
     }
 
     network_forget_all_reliable();
-    //crash_handler_init();
+    #ifndef TARGET_ANDROID
+    crash_handler_init();
+    #endif
 
     // set server settings
     gServerSettings.playerInteractions = configPlayerInteraction;
@@ -132,11 +134,7 @@ bool network_init(enum NetworkType inNetworkType, bool reconnecting) {
     gServerSettings.maxPlayers = configAmountOfPlayers;
     gServerSettings.pauseAnywhere = configPauseAnywhere;
     gServerSettings.pvpType = configPvpType;
-#if defined(RAPI_DUMMY) || defined(WAPI_DUMMY)
-    gServerSettings.headlessServer = (inNetworkType == NT_SERVER);
-#else
-    gServerSettings.headlessServer = 0;
-#endif
+    gServerSettings.headlessServer = gCLIOpts.headless && (inNetworkType == NT_SERVER);
 
     gNametagsSettings.showHealth = false;
     gNametagsSettings.showSelfTag = false;
