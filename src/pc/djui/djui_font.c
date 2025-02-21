@@ -157,7 +157,7 @@ static void djui_font_aliased_render_char(char* c) {
         u32 tx = index % 64;
         u32 ty = index / 64;
         extern ALIGNED8 const Texture texture_font_jp_aliased[];
-        djui_gfx_render_texture_tile(texture_font_jp_aliased, 1024, 2048, 32, tx * 16, ty * 32, 16, 32, false, true);
+        djui_gfx_render_texture_tile(texture_font_jp_aliased, 2048, 2048, 32, tx * 32, ty * 32, 32, 32, false, true);
     } else {
         u32 tx = index % 32;
         u32 ty = index / 32;
@@ -254,7 +254,7 @@ static void djui_font_special_render_char(char* c) {
         u32 tx = index % 64;
         u32 ty = index / 64;
         extern ALIGNED8 const Texture texture_font_jp[];
-        djui_gfx_render_texture_tile(texture_font_jp, 512, 1024, 32, tx * 8, ty * 16, 8, 16, false, true);
+        djui_gfx_render_texture_tile(texture_font_jp, 2048, 2048, 32, tx * 32, ty * 32, 32, 32, false, true);
     } else {
         u32 tx = index % 32;
         u32 ty = index / 32;
