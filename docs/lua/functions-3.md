@@ -1534,29 +1534,6 @@ Resolves collisions between the camera and level geometry. Adjusts the camera's 
 
 <br />
 
-## [rom_hack_cam_set_collisions](#rom_hack_cam_set_collisions)
-
-### Description
-Toggles collision settings for the ROM hack camera. This enables or disables specific collision behaviors in modded levels
-
-### Lua Example
-`rom_hack_cam_set_collisions(enable)`
-
-### Parameters
-| Field | Type |
-| ----- | ---- |
-| enable | `integer` |
-
-### Returns
-- None
-
-### C Prototype
-`void rom_hack_cam_set_collisions(u8 enable);`
-
-[:arrow_up_small:](#)
-
-<br />
-
 ## [rotate_camera_around_walls](#rotate_camera_around_walls)
 
 ### Description
@@ -2235,6 +2212,29 @@ Skips camera interpolation for a frame, locking the camera instantly to the targ
 
 ### C Prototype
 `void skip_camera_interpolation(void);`
+
+[:arrow_up_small:](#)
+
+<br />
+
+## [snap_to_45_degrees](#snap_to_45_degrees)
+
+### Description
+Takes in an SM64 angle unit and returns the nearest 45 degree angle, also in SM64 angle units. Useful when needing to align angles (camera, yaw, etc.)
+
+### Lua Example
+`local integerValue = snap_to_45_degrees(angle)`
+
+### Parameters
+| Field | Type |
+| ----- | ---- |
+| angle | `integer` |
+
+### Returns
+- `integer`
+
+### C Prototype
+`s32 snap_to_45_degrees(s16 angle);`
 
 [:arrow_up_small:](#)
 
@@ -6238,6 +6238,260 @@ Special warps to arg (`SPECIAL_WARP_*`)
 
 ### C Prototype
 `void warp_special(s32 arg);`
+
+[:arrow_up_small:](#)
+
+<br />
+
+---
+# functions from lighting_engine.h
+
+<br />
+
+
+## [le_add_light](#le_add_light)
+
+### Description
+Adds a lighting engine point light at `x`, `y`, `z` with color `r`, `g`, `b` and `radius` with `intensity`
+
+### Lua Example
+`local integerValue = le_add_light(x, y, z, r, g, b, radius, intensity)`
+
+### Parameters
+| Field | Type |
+| ----- | ---- |
+| x | `number` |
+| y | `number` |
+| z | `number` |
+| r | `integer` |
+| g | `integer` |
+| b | `integer` |
+| radius | `number` |
+| intensity | `number` |
+
+### Returns
+- `integer`
+
+### C Prototype
+`s32 le_add_light(f32 x, f32 y, f32 z, u8 r, u8 g, u8 b, f32 radius, f32 intensity);`
+
+[:arrow_up_small:](#)
+
+<br />
+
+## [le_calculate_lighting_color](#le_calculate_lighting_color)
+
+### Description
+Calculates the lighting with `lightIntensityScalar` at a position and outputs the color in `out`
+
+### Lua Example
+`le_calculate_lighting_color(pos, out, lightIntensityScalar)`
+
+### Parameters
+| Field | Type |
+| ----- | ---- |
+| pos | [Vec3f](structs.md#Vec3f) |
+| out | `Color` |
+| lightIntensityScalar | `number` |
+
+### Returns
+- None
+
+### C Prototype
+`void le_calculate_lighting_color(Vec3f pos, Color out, f32 lightIntensityScalar);`
+
+[:arrow_up_small:](#)
+
+<br />
+
+## [le_calculate_lighting_dir](#le_calculate_lighting_dir)
+
+### Description
+Calculates the lighting direction from a position and outputs the result in `out`
+
+### Lua Example
+`le_calculate_lighting_dir(pos, out)`
+
+### Parameters
+| Field | Type |
+| ----- | ---- |
+| pos | [Vec3f](structs.md#Vec3f) |
+| out | [Vec3f](structs.md#Vec3f) |
+
+### Returns
+- None
+
+### C Prototype
+`void le_calculate_lighting_dir(Vec3f pos, Vec3f out);`
+
+[:arrow_up_small:](#)
+
+<br />
+
+## [le_get_light_count](#le_get_light_count)
+
+### Description
+Gets the total number of lights currently loaded in the lighting engine
+
+### Lua Example
+`local integerValue = le_get_light_count()`
+
+### Parameters
+- None
+
+### Returns
+- `integer`
+
+### C Prototype
+`s32 le_get_light_count(void);`
+
+[:arrow_up_small:](#)
+
+<br />
+
+## [le_remove_light](#le_remove_light)
+
+### Description
+Removes a lighting engine point light corresponding to `id`
+
+### Lua Example
+`le_remove_light(id)`
+
+### Parameters
+| Field | Type |
+| ----- | ---- |
+| id | `integer` |
+
+### Returns
+- None
+
+### C Prototype
+`void le_remove_light(s32 id);`
+
+[:arrow_up_small:](#)
+
+<br />
+
+## [le_set_ambient_color](#le_set_ambient_color)
+
+### Description
+Sets the lighting engine ambient color
+
+### Lua Example
+`le_set_ambient_color(r, g, b)`
+
+### Parameters
+| Field | Type |
+| ----- | ---- |
+| r | `integer` |
+| g | `integer` |
+| b | `integer` |
+
+### Returns
+- None
+
+### C Prototype
+`void le_set_ambient_color(u8 r, u8 g, u8 b);`
+
+[:arrow_up_small:](#)
+
+<br />
+
+## [le_set_light_color](#le_set_light_color)
+
+### Description
+Sets a lighting engine point light's color to `r`, `g`, `b`
+
+### Lua Example
+`le_set_light_color(id, r, g, b)`
+
+### Parameters
+| Field | Type |
+| ----- | ---- |
+| id | `integer` |
+| r | `integer` |
+| g | `integer` |
+| b | `integer` |
+
+### Returns
+- None
+
+### C Prototype
+`void le_set_light_color(s32 id, u8 r, u8 g, u8 b);`
+
+[:arrow_up_small:](#)
+
+<br />
+
+## [le_set_light_intensity](#le_set_light_intensity)
+
+### Description
+Sets a lighting engine point light's `intensity`
+
+### Lua Example
+`le_set_light_intensity(id, intensity)`
+
+### Parameters
+| Field | Type |
+| ----- | ---- |
+| id | `integer` |
+| intensity | `number` |
+
+### Returns
+- None
+
+### C Prototype
+`void le_set_light_intensity(s32 id, f32 intensity);`
+
+[:arrow_up_small:](#)
+
+<br />
+
+## [le_set_light_pos](#le_set_light_pos)
+
+### Description
+Sets a lighting engine point light's position to `x`, `y`, `z`
+
+### Lua Example
+`le_set_light_pos(id, x, y, z)`
+
+### Parameters
+| Field | Type |
+| ----- | ---- |
+| id | `integer` |
+| x | `number` |
+| y | `number` |
+| z | `number` |
+
+### Returns
+- None
+
+### C Prototype
+`void le_set_light_pos(s32 id, f32 x, f32 y, f32 z);`
+
+[:arrow_up_small:](#)
+
+<br />
+
+## [le_set_light_radius](#le_set_light_radius)
+
+### Description
+Sets a lighting engine point light's `radius`
+
+### Lua Example
+`le_set_light_radius(id, radius)`
+
+### Parameters
+| Field | Type |
+| ----- | ---- |
+| id | `integer` |
+| radius | `number` |
+
+### Returns
+- None
+
+### C Prototype
+`void le_set_light_radius(s32 id, f32 radius);`
 
 [:arrow_up_small:](#)
 

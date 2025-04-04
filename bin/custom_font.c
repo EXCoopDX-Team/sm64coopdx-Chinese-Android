@@ -3,6 +3,14 @@
 #include "game/ingame_menu.h"
 #include "make_const_nonconst.h"
 
+ALIGNED8 const u8 texture_font_emoji[] = {
+#include "textures/custom_font/custom_font_emoji.rgba32.inc.c"
+};
+
+ALIGNED8 const u8 texture_font_emoji_aliased[] = {
+#include "textures/custom_font/custom_font_emoji_aliased.rgba32.inc.c"
+};
+
 ALIGNED8 const u8 texture_font_jp[] = {
 #include "textures/custom_font/custom_font_jp.rgba32.inc.c"
 };

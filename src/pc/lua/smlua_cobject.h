@@ -59,12 +59,14 @@ typedef struct {
     void *pointer;
     u16 lot;
     bool freed;
+    void *info;
 } CObject;
 
 typedef struct {
     void *pointer;
     u16 lvt;
     bool freed;
+    void *info;
 } CPointer;
 
 extern int gSmLuaCObjects;
@@ -72,8 +74,11 @@ extern int gSmLuaCPointers;
 extern int gSmLuaCObjectMetatable;
 extern int gSmLuaCPointerMetatable;
 
+extern CObject *gCameraCObject;
+
 bool smlua_valid_lot(u16 lot);
 bool smlua_valid_lvt(u16 lvt);
+const char *smlua_get_lvt_name(u16 lvt);
 struct LuaObjectField* smlua_get_object_field_from_ot(struct LuaObjectTable* ot, const char* key);
 struct LuaObjectField* smlua_get_object_field(u16 lot, const char* key);
 struct LuaObjectField* smlua_get_custom_field(lua_State* L, u32 lot, int keyIndex);

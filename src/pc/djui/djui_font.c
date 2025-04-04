@@ -8,17 +8,25 @@
 ///////////////////////////////////
 
 static void djui_font_normal_render_char(char* c) {
-    // replace undisplayable characters
+
+    // 替换不可显示的字符
     if (*c == ' ') { return; }
 
     u32 index = djui_unicode_get_sprite_index(c);
 
-    if (index & 0x010000) {
-        index &= ~0x010000;
+    // 检查是否是 Emoji 字符
+    if (index & 0x020000) {
+        index &= ~0x020000;
         u32 tx = index % 64;
         u32 ty = index / 64;
+        extern ALIGNED8 const Texture texture_font_emoji[];
+        djui_gfx_render_texture_tile(texture_font_emoji, 2048, 256, 32, tx * 32, ty * 32, 32, 32, false, true);
+    } else if (index & 0x010000) {
+        index &= ~0x010000;
+        u32 tx = index % 114;
+        u32 ty = index / 114;
         extern ALIGNED8 const Texture texture_font_jp[];
-        djui_gfx_render_texture_tile(texture_font_jp, 2048, 2048, 32, tx * 32, ty * 32, 32, 32, false, true);
+        djui_gfx_render_texture_tile(texture_font_jp, 1824, 1378, 32, tx * 16, ty * 22, 16, 22, false, true);
     } else {
         u32 tx = index % 32;
         u32 ty = index / 32;
@@ -37,6 +45,8 @@ static const struct DjuiFont sDjuiFontNormal = {
     .charWidth            = 0.5f,
     .charHeight           = 1.0f,
     .lineHeight           = 0.8125f,
+    .xOffset              = 0.0f,
+    .yOffset              = 0.0f,
     .defaultFontScale     = 32.0f,
     .textBeginDisplayList = NULL,
     .render_char          = djui_font_normal_render_char,
@@ -77,6 +87,8 @@ static const struct DjuiFont sDjuiFontTitle = {
     .charWidth            = 1.0f,
     .charHeight           = 0.9f,
     .lineHeight           = 0.7f,
+    .xOffset              = 0.0f,
+    .yOffset              = 0.0f,
     .defaultFontScale     = 64.0f,
     .textBeginDisplayList = NULL,
     .render_char          = djui_font_title_render_char,
@@ -136,6 +148,8 @@ static const struct DjuiFont sDjuiFontHud = {
     .charWidth            = 1.0f,
     .charHeight           = 0.9f,
     .lineHeight           = 0.7f,
+    .xOffset              = 0.0f,
+    .yOffset              = 0.0f,
     .defaultFontScale     = 16.0f,
     .textBeginDisplayList = NULL,
     .render_char          = djui_font_hud_render_char,
@@ -147,17 +161,24 @@ static const struct DjuiFont sDjuiFontHud = {
 ////////////////////////////////
 
 static void djui_font_aliased_render_char(char* c) {
-    // replace undisplayable characters
+    // 替换不可显示的字符
     if (*c == ' ') { return; }
 
     u32 index = djui_unicode_get_sprite_index(c);
 
-    if (index & 0x010000) {
-        index &= ~0x010000;
+    // 检查是否是 Emoji 字符
+    if (index & 0x020000) {
+        index &= ~0x020000;
         u32 tx = index % 64;
         u32 ty = index / 64;
+        extern ALIGNED8 const Texture texture_font_emoji_aliased[];
+        djui_gfx_render_texture_tile(texture_font_emoji_aliased, 2048, 256, 32, tx * 32, ty * 32, 32, 32, false, true);
+    } else if (index & 0x010000) {
+        index &= ~0x010000;
+        u32 tx = index % 114;
+        u32 ty = index / 114;
         extern ALIGNED8 const Texture texture_font_jp_aliased[];
-        djui_gfx_render_texture_tile(texture_font_jp_aliased, 2048, 2048, 32, tx * 32, ty * 32, 32, 32, false, true);
+        djui_gfx_render_texture_tile(texture_font_jp_aliased, 1824, 1378, 32, tx * 16, ty * 22, 16, 22, false, true);
     } else {
         u32 tx = index % 32;
         u32 ty = index / 32;
@@ -175,6 +196,8 @@ static f32 djui_font_aliased_char_width(char* c) {
 static const struct DjuiFont sDjuiFontAliased = {
     .charWidth            = 0.5f,
     .charHeight           = 1.0f,
+    .xOffset              = 0.0f,
+    .yOffset              = 0.0f,
     .lineHeight           = 0.8125f,
     .defaultFontScale     = 32.0f,
     .textBeginDisplayList = NULL,
@@ -224,6 +247,8 @@ static const struct DjuiFont sDjuiFontCustomHud = {
     .charWidth            = 1.0f,
     .charHeight           = 0.9f,
     .lineHeight           = 0.7f,
+    .xOffset              = -0.25f,
+    .yOffset              = -10.25f,
     .defaultFontScale     = 32.0f,
     .textBeginDisplayList = NULL,
     .render_char          = djui_font_custom_hud_render_char,
@@ -234,6 +259,8 @@ static const struct DjuiFont sDjuiFontCustomHudRecolor = {
     .charWidth            = 1.0f,
     .charHeight           = 0.9f,
     .lineHeight           = 0.7f,
+    .xOffset              = -0.25f,
+    .yOffset              = -10.25f,
     .defaultFontScale     = 32.0f,
     .textBeginDisplayList = NULL,
     .render_char          = djui_font_custom_hud_recolor_render_char,
@@ -274,6 +301,8 @@ static const struct DjuiFont sDjuiFontSpecial = {
     .charWidth            = 0.5f,
     .charHeight           = 1.0f,
     .lineHeight           = 0.8125f,
+    .xOffset              = 0.0f,
+    .yOffset              = 0.0f,
     .defaultFontScale     = 32.0f,
     .textBeginDisplayList = NULL,
     .render_char          = djui_font_special_render_char,

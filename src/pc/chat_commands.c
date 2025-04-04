@@ -48,10 +48,7 @@ static void chat_construct_player_message(struct NetworkPlayer* np, char* msg) {
     snprintf(built, 256, "\\#fff982\\");
 
     char player[128] = { 0 };
-    // 在玩家名字前加上 🇨🇳
-    snprintf(player, 128, "🇨🇳 %s%s\\#fff982\\", network_get_player_text_color_string(np->localIndex), np->name);
-    
-    // 使用替换后的玩家名称发送聊天消息
+    snprintf(player, 128, "%s%s\\#fff982\\", network_get_player_text_color_string(np->localIndex), np->name);
     djui_language_replace(msg, &built[9], 256 - 9, '@', player);
     djui_chat_message_create(built);
 }

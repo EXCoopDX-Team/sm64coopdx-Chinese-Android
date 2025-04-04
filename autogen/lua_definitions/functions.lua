@@ -119,6 +119,11 @@ function bhv_alpha_boo_key_loop()
     -- ...
 end
 
+--- Behavior loop function for the lighting engine ambient light. Takes the first 3 behavior parameter bytes for RGB color
+function bhv_ambient_light_update()
+    -- ...
+end
+
 --- Behavior init function for ambient sounds
 function bhv_ambient_sounds_init()
     -- ...
@@ -1764,6 +1769,16 @@ function bhv_play_music_track_when_touched_loop()
     -- ...
 end
 
+--- Behavior init function for the lighting engine point light. Takes the first 3 behavior parameter bytes for RGB color and the last for radius
+function bhv_point_light_init()
+    -- ...
+end
+
+--- Behavior loop function for the lighting engine point light
+function bhv_point_light_loop()
+    -- ...
+end
+
 --- Behavior loop function for Pokey body part
 function bhv_pokey_body_part_update()
     -- ...
@@ -2829,6 +2844,18 @@ end
 --- @param x number
 --- @param y number
 --- @param z number
+--- @param r integer
+--- @param g integer
+--- @param b integer
+--- @return Object
+--- Spawns a lighting engine point light
+function spawn_ambient_light(x, y, z, r, g, b)
+    -- ...
+end
+
+--- @param x number
+--- @param y number
+--- @param z number
 --- @return Object
 --- Spawns a Star with an ID corresponding to the current object's first behavior parameter byte
 function spawn_default_star(x, y, z)
@@ -2854,6 +2881,19 @@ end
 --- @return Object
 --- Spawns a Star that won't make Mario exit the level with an ID corresponding to the current object's first behavior parameter byte
 function spawn_no_exit_star(x, y, z)
+    -- ...
+end
+
+--- @param x number
+--- @param y number
+--- @param z number
+--- @param r integer
+--- @param g integer
+--- @param b integer
+--- @param radius number
+--- @return Object
+--- Spawns a lighting engine ambient light
+function spawn_point_light(x, y, z, r, g, b, radius)
     -- ...
 end
 
@@ -3392,12 +3432,6 @@ function resolve_geometry_collisions(pos, lastGood)
     -- ...
 end
 
---- @param enable integer
---- Toggles collision settings for the ROM hack camera. This enables or disables specific collision behaviors in modded levels
-function rom_hack_cam_set_collisions(enable)
-    -- ...
-end
-
 --- @param c Camera
 --- @param cPos Vec3f
 --- @param avoidYaw Pointer_integer
@@ -3611,6 +3645,13 @@ end
 
 --- Skips camera interpolation for a frame, locking the camera instantly to the target position. Useful for immediate changes in camera state or position without smooth transitions
 function skip_camera_interpolation()
+    -- ...
+end
+
+--- @param angle integer
+--- @return integer
+--- Takes in an SM64 angle unit and returns the nearest 45 degree angle, also in SM64 angle units. Useful when needing to align angles (camera, yaw, etc.)
+function snap_to_45_degrees(angle)
     -- ...
 end
 
@@ -4820,6 +4861,87 @@ function warp_special(arg)
     -- ...
 end
 
+--- @param x number
+--- @param y number
+--- @param z number
+--- @param r integer
+--- @param g integer
+--- @param b integer
+--- @param radius number
+--- @param intensity number
+--- @return integer
+--- Adds a lighting engine point light at `x`, `y`, `z` with color `r`, `g`, `b` and `radius` with `intensity`
+function le_add_light(x, y, z, r, g, b, radius, intensity)
+    -- ...
+end
+
+--- @param pos Vec3f
+--- @param out Color
+--- @param lightIntensityScalar number
+--- Calculates the lighting with `lightIntensityScalar` at a position and outputs the color in `out`
+function le_calculate_lighting_color(pos, out, lightIntensityScalar)
+    -- ...
+end
+
+--- @param pos Vec3f
+--- @param out Vec3f
+--- Calculates the lighting direction from a position and outputs the result in `out`
+function le_calculate_lighting_dir(pos, out)
+    -- ...
+end
+
+--- @return integer
+--- Gets the total number of lights currently loaded in the lighting engine
+function le_get_light_count()
+    -- ...
+end
+
+--- @param id integer
+--- Removes a lighting engine point light corresponding to `id`
+function le_remove_light(id)
+    -- ...
+end
+
+--- @param r integer
+--- @param g integer
+--- @param b integer
+--- Sets the lighting engine ambient color
+function le_set_ambient_color(r, g, b)
+    -- ...
+end
+
+--- @param id integer
+--- @param r integer
+--- @param g integer
+--- @param b integer
+--- Sets a lighting engine point light's color to `r`, `g`, `b`
+function le_set_light_color(id, r, g, b)
+    -- ...
+end
+
+--- @param id integer
+--- @param intensity number
+--- Sets a lighting engine point light's `intensity`
+function le_set_light_intensity(id, intensity)
+    -- ...
+end
+
+--- @param id integer
+--- @param x number
+--- @param y number
+--- @param z number
+--- Sets a lighting engine point light's position to `x`, `y`, `z`
+function le_set_light_pos(id, x, y, z)
+    -- ...
+end
+
+--- @param id integer
+--- @param radius number
+--- Sets a lighting engine point light's `radius`
+function le_set_light_radius(id, radius)
+    -- ...
+end
+
 --- @param m MarioState
 --- Adjusts the pitch/volume of Mario's movement-based sounds according to his forward velocity (`m.forwardVel`). Useful for adding dynamic audio feedback based on Mario's running or walking speed
 function adjust_sound_for_speed(m)
@@ -5103,7 +5225,7 @@ function set_anim_to_frame(m, animFrame)
 end
 
 --- @param m MarioState
---- @param targetAnimID integer
+--- @param targetAnimID CharacterAnimID
 --- @param accel integer
 --- @return integer
 --- Sets a character-specific animation where the animation speed is adjusted by `accel`. Useful for varying animation speeds based on context or dynamic conditions (e.g., slow-motion)
@@ -5112,7 +5234,7 @@ function set_character_anim_with_accel(m, targetAnimID, accel)
 end
 
 --- @param m MarioState
---- @param targetAnimID integer
+--- @param targetAnimID CharacterAnimID
 --- @return integer
 --- Sets the character-specific animation at its default rate (no acceleration)
 function set_character_animation(m, targetAnimID)
@@ -6424,6 +6546,77 @@ end
 --- @return void*
 --- Converts a 3D signed-integer vector `a` (vec3s) into a 3D floating-point vector and stores it in `dest`. After this operation, `dest` will contain the floating-point equivalents of `a`'s integer components
 function vec3s_to_vec3f(dest, a)
+    -- ...
+end
+
+--- @return number
+--- Gets the current clock elapsed time
+function clock_elapsed()
+    -- ...
+end
+
+--- @return number
+--- Gets the current clock elapsed time with double precision
+function clock_elapsed_f64()
+    -- ...
+end
+
+--- @return integer
+--- Gets the current clock elapsed time in frames
+function clock_elapsed_ticks()
+    -- ...
+end
+
+--- @param month integer
+--- @param day integer
+--- @return boolean
+--- Checks whether it is the day given
+function clock_is_date(month, day)
+    -- ...
+end
+
+--- @param a number
+--- @param b number
+--- @param delta number
+--- @return number
+--- Linearly interpolates between `a` and `b` with `delta`
+function delta_interpolate_f32(a, b, delta)
+    -- ...
+end
+
+--- @param a integer
+--- @param b integer
+--- @param delta number
+--- @return integer
+--- Linearly interpolates between `a` and `b` with `delta`
+function delta_interpolate_s32(a, b, delta)
+    -- ...
+end
+
+--- @param res Vec3f
+--- @param a Vec3f
+--- @param b Vec3f
+--- @param delta number
+--- Linearly interpolates `res` between `a` and `b` with `delta`
+function delta_interpolate_vec3f(res, a, b, delta)
+    -- ...
+end
+
+--- @param res Vec3s
+--- @param a Vec3s
+--- @param b Vec3s
+--- @param delta number
+--- Linearly interpolates `res` between `a` and `b` with `delta`
+function delta_interpolate_vec3s(res, a, b, delta)
+    -- ...
+end
+
+--- @param edge0 number
+--- @param edge1 number
+--- @param x number
+--- @return number
+--- Smoothly steps between `edge0` and `edge1` with `x` as delta
+function smooth_step(edge0, edge1, x)
     -- ...
 end
 
@@ -8834,6 +9027,14 @@ function audio_stream_set_frequency(audio, freq)
 end
 
 --- @param audio ModAudio
+--- @param loopStart integer
+--- @param loopEnd integer
+--- Sets an `audio` stream's loop points (samples)
+function audio_stream_set_loop_points(audio, loopStart, loopEnd)
+    -- ...
+end
+
+--- @param audio ModAudio
 --- @param looping boolean
 --- Sets if an `audio` stream is looping or not
 function audio_stream_set_looping(audio, looping)
@@ -8885,6 +9086,24 @@ function camera_config_enable_analog_cam(enable)
 end
 
 --- @param enable boolean
+--- Overrides if the L button will center the camera
+function camera_config_enable_centering(enable)
+    -- ...
+end
+
+--- @param enable boolean
+--- Overrides if Camera Collision is enabled
+function camera_config_enable_collisions(enable)
+    -- ...
+end
+
+--- @param enable boolean
+--- Overrides if Freecam DPad Behavior is enabled
+function camera_config_enable_dpad(enable)
+    -- ...
+end
+
+--- @param enable boolean
 --- Overrides if Free Camera is enabled
 function camera_config_enable_free_cam(enable)
     -- ...
@@ -8898,6 +9117,12 @@ end
 
 --- @return integer
 function camera_config_get_aggression()
+    -- ...
+end
+
+--- @return boolean
+--- Gets if the L button will center the camera
+function camera_config_get_centering()
     -- ...
 end
 
@@ -8936,6 +9161,18 @@ end
 --- @return boolean
 --- Checks if Analog Camera is enabled
 function camera_config_is_analog_cam_enabled()
+    -- ...
+end
+
+--- @return boolean
+--- Checks if Camera Collision is enabled
+function camera_config_is_collision_enabled()
+    -- ...
+end
+
+--- @return boolean
+--- Checks if Freecam DPad Behavior is enabled
+function camera_config_is_dpad_enabled()
     -- ...
 end
 
@@ -8998,9 +9235,21 @@ function camera_freeze()
     -- ...
 end
 
+--- @return integer
+--- Gets if the romhack camera should fly above poison gas
+function camera_get_allow_toxic_gas_camera()
+    -- ...
+end
+
 --- @return boolean
 --- Checks if the camera should account for surfaces
 function camera_get_checking_surfaces()
+    -- ...
+end
+
+--- @return RomhackCameraOverride
+--- Gets the current romhack camera override status
+function camera_get_romhack_override()
     -- ...
 end
 
@@ -9016,7 +9265,7 @@ function camera_reset_overrides()
 end
 
 --- @param allow integer
---- Sets if the romhack camera should allow centering
+--- Sets if the romhack camera should allow centering, triggered with the L button
 function camera_romhack_allow_centering(allow)
     -- ...
 end
@@ -9024,6 +9273,78 @@ end
 --- @param allow integer
 --- Sets if the romhack camera should allow D-Pad movement
 function camera_romhack_allow_dpad_usage(allow)
+    -- ...
+end
+
+--- @param allow integer
+--- Sets if only mods are allowed to modify the camera (Enabling prevents the player from modifying the camera through the settings)
+function camera_romhack_allow_only_mods(allow)
+    -- ...
+end
+
+--- @return integer
+--- Gets if the romhack camera should allow centering
+function camera_romhack_get_allow_centering()
+    -- ...
+end
+
+--- @return integer
+--- Gets if the romhack camera should allow D-Pad movement
+function camera_romhack_get_allow_dpad_usage()
+    -- ...
+end
+
+--- @return integer
+--- Gets if the romhack camera has surface collisions
+function camera_romhack_get_collisions()
+    -- ...
+end
+
+--- @return integer
+--- Gets the romhack camera's zoomed in distance
+function camera_romhack_get_zoomed_in_dist()
+    -- ...
+end
+
+--- @return integer
+--- Gets the romhack camera's zoomed in height
+function camera_romhack_get_zoomed_in_height()
+    -- ...
+end
+
+--- @return integer
+--- Gets the romhack camera's additional zoomed out distance
+function camera_romhack_get_zoomed_out_dist()
+    -- ...
+end
+
+--- @return integer
+--- Gets the romhack camera's additional zoomed out height
+function camera_romhack_get_zoomed_out_height()
+    -- ...
+end
+
+--- @param val integer
+--- Sets the romhack camera's zoomed in distance (Default: 900)
+function camera_romhack_set_zoomed_in_dist(val)
+    -- ...
+end
+
+--- @param val integer
+--- Sets the romhack camera's zoomed in height (Default: 300)
+function camera_romhack_set_zoomed_in_height(val)
+    -- ...
+end
+
+--- @param val integer
+--- Sets the romhack camera's zoomed out additional distance (Default: 500)
+function camera_romhack_set_zoomed_out_dist(val)
+    -- ...
+end
+
+--- @param val integer
+--- Sets the romhack camera's zoomed out additional height (Default: 150)
+function camera_romhack_set_zoomed_out_height(val)
     -- ...
 end
 
@@ -9041,6 +9362,12 @@ end
 
 --- Unfreezes the camera
 function camera_unfreeze()
+    -- ...
+end
+
+--- @param enable integer
+--- Toggles collision settings for the ROM hack camera. This enables or disables specific collision behaviors in modded levels
+function rom_hack_cam_set_collisions(enable)
     -- ...
 end
 
@@ -9210,6 +9537,60 @@ end
 --- @return integer
 --- Gets a value of the global vertex shading color
 function get_vertex_color(index)
+    -- ...
+end
+
+--- @param gfx Pointer_Gfx
+--- @param offset integer
+--- @return Pointer_Vtx
+--- Gets a vertex from a display list command if it has the correct op. Intended to be used with `gfx_parse`
+function gfx_get_vtx(gfx, offset)
+    -- ...
+end
+
+--- @param cmd Pointer_Gfx
+--- @return integer
+--- Gets the number of vertices from a display list command if it has the correct op
+function gfx_get_vtx_count(cmd)
+    -- ...
+end
+
+--- @param cmd Pointer_Gfx
+--- @param func function
+--- Traverses a display list. Takes a Lua function as a parameter, which is called back for each command in the display list with the parameters `cmd` (display list pointer), and `op`
+function gfx_parse(cmd, func)
+    -- ...
+end
+
+--- @param gfx Pointer_Gfx
+--- @param a0 integer
+--- @param b0 integer
+--- @param c0 integer
+--- @param d0 integer
+--- @param Aa0 integer
+--- @param Ab0 integer
+--- @param Ac0 integer
+--- @param Ad0 integer
+--- @param a1 integer
+--- @param b1 integer
+--- @param c1 integer
+--- @param d1 integer
+--- @param Aa1 integer
+--- @param Ab1 integer
+--- @param Ac1 integer
+--- @param Ad1 integer
+--- Sets the display list combine mode. you can fill this function with G_CCMUX_* and G_ACMUX_* constants
+function gfx_set_combine_lerp(gfx, a0, b0, c0, d0, Aa0, Ab0, Ac0, Ad0, a1, b1, c1, d1, Aa1, Ab1, Ac1, Ad1)
+    -- ...
+end
+
+--- @param gfx Pointer_Gfx
+--- @param format integer
+--- @param size integer
+--- @param width integer
+--- @param texture Pointer_integer
+--- Sets the display list texture image. Pass in textureInfo.texture as `texture`
+function gfx_set_texture_image(gfx, format, size, width, texture)
     -- ...
 end
 
@@ -9540,6 +9921,18 @@ function djui_set_popup_disabled_override(value)
     -- ...
 end
 
+--- @return Mod
+--- Gets the mod currently being processed
+function get_active_mod()
+    -- ...
+end
+
+--- @return integer
+--- Gets the area update counter incremented when objects are updated
+function get_area_update_counter()
+    -- ...
+end
+
 --- @param localIndex integer
 --- @return string
 --- Gets the CoopNet ID of a player with `localIndex` if CoopNet is being used and the player is connected, otherwise "-1" is returned
@@ -9706,7 +10099,7 @@ end
 
 --- @param index integer
 --- @return integer
---- Gets the water level in an area
+--- Gets the water level in an area corresponding to `index` (0-indexed)
 function get_water_level(index)
     -- ...
 end
@@ -9907,7 +10300,7 @@ end
 --- @param index integer
 --- @param height integer
 --- @param sync boolean
---- Sets the water level in an area
+--- Sets the water level in an area corresponding to `index` (0-indexed)
 function set_water_level(index, height, sync)
     -- ...
 end
@@ -9922,6 +10315,36 @@ end
 --- @return ModelExtendedId
 --- Gets the extended model ID for the `name` of a `GeoLayout`
 function smlua_model_util_get_id(name)
+    -- ...
+end
+
+--- @return Object
+--- When used in a geo function, retrieve the current processed object
+function geo_get_current_object()
+    -- ...
+end
+
+--- @return Object
+--- Gets the object currently being processed
+function get_current_object()
+    -- ...
+end
+
+--- @return Object
+--- Gets the cutscene focus object
+function get_cutscene_focus()
+    -- ...
+end
+
+--- @return Object
+--- Gets the NPC object Mario is talking to
+function get_dialog_object()
+    -- ...
+end
+
+--- @return Object
+--- Gets the secondary camera focus object
+function get_secondary_camera_focus()
     -- ...
 end
 
@@ -10036,6 +10459,13 @@ end
 --- @return Object
 --- Gets the first object loaded with `behaviorId` and object signed 32-bit integer field (look in `object_fields.h` to get the index of a field)
 function obj_get_first_with_behavior_id_and_field_s32(behaviorId, fieldIndex, value)
+    -- ...
+end
+
+--- @param o Object
+--- @return ModelExtendedId
+--- Returns an object's extended model id
+function obj_get_model_id_extended(o)
     -- ...
 end
 
@@ -10220,6 +10650,20 @@ end
 --- @param vz number
 --- Sets an object's velocity to `vx`, `vy`, and `vz`
 function obj_set_vel(o, vx, vy, vz)
+    -- ...
+end
+
+--- @param o Object
+--- @return void*
+--- Sets the cutscene focus object
+function set_cutscene_focus(o)
+    -- ...
+end
+
+--- @param o Object
+--- @return void*
+--- Sets the secondary camera focus object
+function set_secondary_camera_focus(o)
     -- ...
 end
 
@@ -10545,6 +10989,14 @@ function find_water_level(x, z)
     -- ...
 end
 
+--- @param dir Vec3f
+--- @param active boolean
+--- @param airborne boolean
+--- Sets whether collision finding functions should check wall directions.
+function set_find_wall_direction(dir, active, airborne)
+    -- ...
+end
+
 --- @param data Pointer_integer
 --- @return integer
 function get_area_terrain_size(data)
@@ -10584,3 +11036,5 @@ end
 --- @class Pointer_Vec4s
 --- @class Pointer_Trajectory
 --- @class Pointer_Collision
+--- @class Pointer_Gfx
+--- @class Pointer_Vtx

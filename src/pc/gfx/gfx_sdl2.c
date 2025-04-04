@@ -130,13 +130,13 @@ static void gfx_sdl_init(const char *window_title) {
     // This causes Android to show the onscreen keyboard
     // Haven't needed this instance on Android yet
     // gfx_sdl_start_text_input() gets called when needed
-    #ifndef __ANDROID__
+#ifndef __ANDROID__
     SDL_StartTextInput();
-    #endif
+#endif
 
-    #ifdef TARGET_ANDROID
+#ifdef TARGET_ANDROID
     SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
-    #endif
+#endif
 
     if (configWindow.msaa > 0) {
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
@@ -208,16 +208,16 @@ static void gfx_sdl_ondropfile(char* path) {
     char portable_path[SYS_MAX_PATH];
     if (sys_windows_short_path_from_mbs(portable_path, SYS_MAX_PATH, path)) {
         if (!gRomIsValid) {
-           // rom_on_drop_file(portable_path);
+            rom_on_drop_file(portable_path);
         } else if (gGameInited) {
-            //mod_import_file(portable_path);
+            mod_import_file(portable_path);
         }
     }
 #else
     if (!gRomIsValid) {
-        //rom_on_drop_file(path);
+        rom_on_drop_file(path);
     } else if (gGameInited) {
-       // mod_import_file(path);
+        mod_import_file(path);
     }
 #endif
 }

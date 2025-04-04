@@ -293,7 +293,7 @@ void touch_motion(struct TouchEvent* event) {
                      (configPhantomTouch && TRIGGER_DETECT(size * 2) &&
                       ControlElements[i].type == Joystick)) &&
                      (ControlElements[TOUCH_MOUSE].touchID != event->touchID ||
-                      !configCameraMouse) &&
+                      !configFreeCameraMouse) &&
                      configSlideTouch) {
                 if (configPhantomTouch)
                     ControlElements[i].touchID = event->touchID;
@@ -319,7 +319,7 @@ void touch_motion(struct TouchEvent* event) {
 static void handle_touch_up(u32 i) { // separated for when the layout changes
     ControlElements[i].touchID = 0;
     struct Position pos = get_pos(&configControlElements[i], 0);
-    if (pos.y == HIDE_POS) return;
+    if (pos.y == HIDE_POS) { return; }
     switch (ControlElements[i].type) {
         case Joystick:
             ControlElements[i].joyX = 0;
@@ -367,19 +367,6 @@ void touch_up(struct TouchEvent* event) {
 
 // Sprite drawing code stolen from src/game/print.c
 
-static void select_button_texture(int dark) {
-    gDPPipeSync(gDisplayListHead++);
-    
-    if (!dark) {
-        gDPSetTextureImage(gDisplayListHead++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 1, touch_textures[TEXTURE_TOUCH_JOYSTICK]);
-    } else {
-        //dark but not in yet
-        gDPSetTextureImage(gDisplayListHead++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 1, touch_textures[TEXTURE_TOUCH_JOYSTICK]);
-    }
-
-    gSPDisplayList(gDisplayListHead++, dl_hud_img_load_tex_block);
-}
-
 const Gfx dl_tex_joystick_base_uv[] = {
     gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_16b_LOAD_BLOCK, 0, 0, 7, 0, G_TX_WRAP | G_TX_NOMIRROR, 0, 0, G_TX_WRAP | G_TX_NOMIRROR, 0, 0),
 	gsDPLoadBlock(7, 0, 0, 1023, 256),
@@ -387,7 +374,6 @@ const Gfx dl_tex_joystick_base_uv[] = {
 	gsDPSetTileSize(0, 0, 0, 124, 124),
     gsSPEndDisplayList(),
 };
-
 
 static void select_joystick_tex_base(void) {
     gDPPipeSync(gDisplayListHead++);
@@ -426,7 +412,7 @@ static void select_char_texture(u8 num) {
 
     gSPDisplayList(gDisplayListHead++, dl_hud_img_load_tex_blockTOUCH);
 }
-#include "src/pc/configfile.h"
+
 static void DrawSprite(s32 x, s32 y, int scaling) {
     gSPTextureRectangle(gDisplayListHead++, x - (16 << scaling), y - (16 << scaling), x + (16 << scaling), y + (16 << scaling), G_TX_RENDERTILE, 0, 0, 4 << (9 - scaling), 1 << (11 - scaling));
 }
@@ -436,7 +422,7 @@ static void DrawSpriteTexJoyBase(s32 x, s32 y, int scaling) {
 }
 
 void render_touch_controls(void) {
-    if ((gGamepadActive && configAutohideTouch) || !gGameInited) return;
+    if ((gGamepadActive && configAutohideTouch) || !gGameInited) { return; }
 
     create_dl_ortho_matrix();
     gSPClearGeometryMode(gDisplayListHead++, G_LIGHTING);
@@ -467,18 +453,10 @@ void render_touch_controls(void) {
                 stick.x = ControlElements[i].joyX * normalizedVectorMultiplier;
                 stick.y = ControlElements[i].joyY * normalizedVectorMultiplier;
                 select_joystick_tex();
-                DrawSprite(pos.x + 4 + stick.x, pos.y + 4 + stick.y, 2);
+                DrawSprite(pos.x + stick.x, pos.y + stick.y, 2);
                 break;
-            /*case Mouse:
-                if ((before_x > 0 || before_y > 0) &&
-                    ControlElements[i].touchID &&
-                    configCameraMouse &&
-                    !gInTouchConfig) {
-                    touch_cam_last_x = before_x > 0 ? before_x : touch_cam_last_x;
-                    touch_cam_last_y = before_y > 0 ? before_y : touch_cam_last_y;
-                    DrawSprite(touch_cam_last_x, touch_cam_last_y, 2);
-                }
-                break;*/
+            case Mouse:
+                break; // Does nothing, just removes the warning
             case Button:
                 if (ControlElements[i].touchID) {
                     select_char_texture(ControlElements[i].buttonTexture.buttonDown);

@@ -54,7 +54,7 @@ static void get_oauth2_token_callback(UNUSED void* data, enum EDiscordResult res
 static void register_launch_command(void) {
     char cmd[MAX_LAUNCH_CMD] = { 0 };
 
-    const char *exe_path = sys_exe_path();
+    const char *exe_path = sys_exe_path_file();
     if (exe_path[0] == '\0') { return; }
 
 #if defined(_WIN32)
@@ -142,9 +142,6 @@ static void discord_initialize(void) {
         app.activities = app.core->get_activity_manager(app.core);
         app.application = app.core->get_application_manager(app.core);
     }
-
-    // get oath2 token
-    app.application->get_oauth2_token(app.application, NULL, get_oauth2_token_callback);
 
     // set activity
     discord_activity_update();

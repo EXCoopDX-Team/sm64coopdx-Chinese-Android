@@ -264,7 +264,7 @@ void produce_interpolation_frames_and_delay(void) {
 static s16 sAudioBuffer[SAMPLES_HIGH * 2 * 2] = { 0 };
 
 inline static void buffer_audio(void) {
-    bool shouldMute = false;
+    bool shouldMute = configMuteFocusLoss && !WAPI.has_focus();
     const f32 masterMod = (f32)configMasterVolume / 127.0f * (f32)gLuaVolumeMaster / 127.0f;
     set_sequence_player_volume(SEQ_PLAYER_LEVEL, shouldMute ? 0 : (f32)configMusicVolume / 127.0f * (f32)gLuaVolumeLevel / 127.0f * masterMod);
     set_sequence_player_volume(SEQ_PLAYER_SFX,   shouldMute ? 0 : (f32)configSfxVolume / 127.0f * (f32)gLuaVolumeSfx / 127.0f * masterMod);
@@ -382,7 +382,7 @@ void game_exit(void) {
     game_deinit();
     exit(0);
 }
-# define FS_BASEDIR "res"
+
 void* main_game_init(UNUSED void* dummy) {
     // load language
     if (!djui_language_init(configLanguage)) { snprintf(configLanguage, MAX_CONFIG_STRING, "%s", ""); }
@@ -393,7 +393,7 @@ void* main_game_init(UNUSED void* dummy) {
     sync_objects_init_system();
 
     if (gCLIOpts.network != NT_SERVER && !gCLIOpts.skipUpdateCheck) {
-       // check_for_updates();
+        check_for_updates();
     }
 
     LOADING_SCREEN_MUTEX(loading_screen_set_segment_text("Loading ROM Assets"));
@@ -410,23 +410,13 @@ void* main_game_init(UNUSED void* dummy) {
     audio_init();
     sound_init();
     network_player_init();
-    //mumble_init();
-
-    if (!gGfxInited) {
-        gfx_init(&WAPI, &RAPI, TITLE);
-         WAPI.set_keyboard_callbacks(keyboard_on_key_down, keyboard_on_key_up, keyboard_on_all_keys_up, keyboard_on_text_input, keyboard_on_text_editing);
-#ifdef TOUCH_CONTROLS
-        WAPI.set_touchscreen_callbacks((void *)touch_down, (void *)touch_motion, (void *)touch_up);
+#ifndef TARGET_ANDROID
+    mumble_init();
 #endif
-    }
 
     gGameInited = true;
 }
 
-// I don't really understand how calling main() from the SDL Java wrapper
-// worked in Android before and doesn't now, but it has started to not work,
-// possibly because the Android NDK is stripping or mangling main(), 
-// so I've switched it to SDL_main 
 #ifdef TARGET_ANDROID
 int SDL_main(int argc, char *argv[]) {
 #else
@@ -434,20 +424,15 @@ int main(int argc, char *argv[]) {
 #endif
 
 // create com.maniscat2.sm64coopdx folder
-
 #ifdef TARGET_ANDROID
     char gamedir[SYS_MAX_PATH] = { 0 };
     const char *basedir = get_gamedir();
-    snprintf(gamedir, sizeof(gamedir), "%s/%s", 
-             basedir,/* gCLIOpts.GameDir[0] ? gCLIOpts.GameDir :*/ FS_BASEDIR);
+    snprintf(gamedir, SYS_MAX_PATH, "%s/%s", basedir, ".nomedia"); // the `.nomedia` folder prevents media from beind detected in apps like the gallery
     if (stat(gamedir, NULL) == -1) {
         mkdir(gamedir, 0770);
     }
-    // Extract lang files and default mods from the apk and copy them to basedir
     // TODO: some way to inhibit this on launch if the apk doesn't contain updated/differing files?
     SDL_AndroidCopyAssetFilesToDir(basedir);
-#else
-    const char *gamedir = /*gCLIOpts.GameDir[0] ? gCLIOpts.GameDir :*/ FS_BASEDIR;
 #endif
 
     // handle terminal arguments
@@ -479,13 +464,13 @@ int main(int argc, char *argv[]) {
     fs_init(gCLIOpts.savePath[0] ? gCLIOpts.savePath : sys_user_path());
 #endif
 
+#ifndef __ANDROID__
 #if !defined(RAPI_DUMMY) && !defined(WAPI_DUMMY)
     if (gCLIOpts.headless) {
-        #ifndef __ANDROID__
         memcpy(&WAPI, &gfx_dummy_wm_api, sizeof(struct GfxWindowManagerAPI));
         memcpy(&RAPI, &gfx_dummy_renderer_api, sizeof(struct GfxRenderingAPI));
-        #endif
     }
+#endif
 #endif
 
     configfile_load();
@@ -553,7 +538,7 @@ int main(int argc, char *argv[]) {
     djui_init_late();
     djui_console_message_dequeue();
 
-    //show_update_popup();
+    show_update_popup();
 
     // initialize network
     if (gCLIOpts.network == NT_CLIENT) {
@@ -590,7 +575,9 @@ int main(int argc, char *argv[]) {
 #ifdef DISCORD_SDK
         discord_update();
 #endif
-        //mumble_update();
+#ifndef TARGET_ANDROID
+        mumble_update();
+#endif
 #ifdef DEBUG
         fflush(stdout);
         fflush(stderr);

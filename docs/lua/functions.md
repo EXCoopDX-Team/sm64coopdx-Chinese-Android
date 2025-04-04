@@ -27,6 +27,8 @@
    - [add_scroll_target](#add_scroll_target)
    - [collision_find_surface_on_ray](#collision_find_surface_on_ray)
    - [cast_graph_node](#cast_graph_node)
+   - [get_uncolored_string](#get_uncolored_string)
+   - [gfx_set_command](#gfx_set_command)
 
 <br />
 
@@ -57,6 +59,7 @@
    - [bhv_activated_back_and_forth_platform_init](functions-2.md#bhv_activated_back_and_forth_platform_init)
    - [bhv_activated_back_and_forth_platform_update](functions-2.md#bhv_activated_back_and_forth_platform_update)
    - [bhv_alpha_boo_key_loop](functions-2.md#bhv_alpha_boo_key_loop)
+   - [bhv_ambient_light_update](functions-2.md#bhv_ambient_light_update)
    - [bhv_ambient_sounds_init](functions-2.md#bhv_ambient_sounds_init)
    - [bhv_animated_texture_loop](functions-2.md#bhv_animated_texture_loop)
    - [bhv_animates_on_floor_switch_press_init](functions-2.md#bhv_animates_on_floor_switch_press_init)
@@ -386,6 +389,8 @@
    - [bhv_platform_on_track_init](functions-2.md#bhv_platform_on_track_init)
    - [bhv_platform_on_track_update](functions-2.md#bhv_platform_on_track_update)
    - [bhv_play_music_track_when_touched_loop](functions-2.md#bhv_play_music_track_when_touched_loop)
+   - [bhv_point_light_init](functions-2.md#bhv_point_light_init)
+   - [bhv_point_light_loop](functions-2.md#bhv_point_light_loop)
    - [bhv_pokey_body_part_update](functions-2.md#bhv_pokey_body_part_update)
    - [bhv_pokey_update](functions-2.md#bhv_pokey_update)
    - [bhv_pole_base_loop](functions-2.md#bhv_pole_base_loop)
@@ -595,10 +600,12 @@
    - [mario_moving_fast_enough_to_make_piranha_plant_bite](functions-2.md#mario_moving_fast_enough_to_make_piranha_plant_bite)
    - [obj_set_secondary_camera_focus](functions-2.md#obj_set_secondary_camera_focus)
    - [play_penguin_walking_sound](functions-2.md#play_penguin_walking_sound)
+   - [spawn_ambient_light](functions-2.md#spawn_ambient_light)
    - [spawn_default_star](functions-2.md#spawn_default_star)
    - [spawn_mist_from_global](functions-2.md#spawn_mist_from_global)
    - [spawn_mist_particles_variable](functions-2.md#spawn_mist_particles_variable)
    - [spawn_no_exit_star](functions-2.md#spawn_no_exit_star)
+   - [spawn_point_light](functions-2.md#spawn_point_light)
    - [spawn_red_coin_cutscene_star](functions-2.md#spawn_red_coin_cutscene_star)
    - [spawn_star_number](functions-2.md#spawn_star_number)
    - [spawn_triangle_break_particles](functions-2.md#spawn_triangle_break_particles)
@@ -683,7 +690,6 @@
    - [random_vec3s](functions-3.md#random_vec3s)
    - [reset_camera](functions-3.md#reset_camera)
    - [resolve_geometry_collisions](functions-3.md#resolve_geometry_collisions)
-   - [rom_hack_cam_set_collisions](functions-3.md#rom_hack_cam_set_collisions)
    - [rotate_camera_around_walls](functions-3.md#rotate_camera_around_walls)
    - [rotate_in_xz](functions-3.md#rotate_in_xz)
    - [rotate_in_yz](functions-3.md#rotate_in_yz)
@@ -712,6 +718,7 @@
    - [shake_camera_roll](functions-3.md#shake_camera_roll)
    - [shake_camera_yaw](functions-3.md#shake_camera_yaw)
    - [skip_camera_interpolation](functions-3.md#skip_camera_interpolation)
+   - [snap_to_45_degrees](functions-3.md#snap_to_45_degrees)
    - [soft_reset_camera](functions-3.md#soft_reset_camera)
    - [start_cutscene](functions-3.md#start_cutscene)
    - [start_object_cutscene_without_focus](functions-3.md#start_object_cutscene_without_focus)
@@ -941,6 +948,20 @@
    - [level_trigger_warp](functions-3.md#level_trigger_warp)
    - [lvl_set_current_level](functions-3.md#lvl_set_current_level)
    - [warp_special](functions-3.md#warp_special)
+
+<br />
+
+- lighting_engine.h
+   - [le_add_light](functions-3.md#le_add_light)
+   - [le_calculate_lighting_color](functions-3.md#le_calculate_lighting_color)
+   - [le_calculate_lighting_dir](functions-3.md#le_calculate_lighting_dir)
+   - [le_get_light_count](functions-3.md#le_get_light_count)
+   - [le_remove_light](functions-3.md#le_remove_light)
+   - [le_set_ambient_color](functions-3.md#le_set_ambient_color)
+   - [le_set_light_color](functions-3.md#le_set_light_color)
+   - [le_set_light_intensity](functions-3.md#le_set_light_intensity)
+   - [le_set_light_pos](functions-3.md#le_set_light_pos)
+   - [le_set_light_radius](functions-3.md#le_set_light_radius)
 
 <br />
 
@@ -1205,6 +1226,15 @@
 <br />
 
 - misc.h
+   - [clock_elapsed](functions-4.md#clock_elapsed)
+   - [clock_elapsed_f64](functions-4.md#clock_elapsed_f64)
+   - [clock_elapsed_ticks](functions-4.md#clock_elapsed_ticks)
+   - [clock_is_date](functions-4.md#clock_is_date)
+   - [delta_interpolate_f32](functions-4.md#delta_interpolate_f32)
+   - [delta_interpolate_s32](functions-4.md#delta_interpolate_s32)
+   - [delta_interpolate_vec3f](functions-4.md#delta_interpolate_vec3f)
+   - [delta_interpolate_vec3s](functions-4.md#delta_interpolate_vec3s)
+   - [smooth_step](functions-4.md#smooth_step)
    - [update_all_mario_stars](functions-4.md#update_all_mario_stars)
 
 <br />
@@ -1636,6 +1666,7 @@
    - [audio_stream_pause](functions-5.md#audio_stream_pause)
    - [audio_stream_play](functions-5.md#audio_stream_play)
    - [audio_stream_set_frequency](functions-5.md#audio_stream_set_frequency)
+   - [audio_stream_set_loop_points](functions-5.md#audio_stream_set_loop_points)
    - [audio_stream_set_looping](functions-5.md#audio_stream_set_looping)
    - [audio_stream_set_position](functions-5.md#audio_stream_set_position)
    - [audio_stream_set_volume](functions-5.md#audio_stream_set_volume)
@@ -1648,9 +1679,13 @@
 - smlua_camera_utils.h
    - [camera_allow_toxic_gas_camera](functions-5.md#camera_allow_toxic_gas_camera)
    - [camera_config_enable_analog_cam](functions-5.md#camera_config_enable_analog_cam)
+   - [camera_config_enable_centering](functions-5.md#camera_config_enable_centering)
+   - [camera_config_enable_collisions](functions-5.md#camera_config_enable_collisions)
+   - [camera_config_enable_dpad](functions-5.md#camera_config_enable_dpad)
    - [camera_config_enable_free_cam](functions-5.md#camera_config_enable_free_cam)
    - [camera_config_enable_mouse_look](functions-5.md#camera_config_enable_mouse_look)
    - [camera_config_get_aggression](functions-5.md#camera_config_get_aggression)
+   - [camera_config_get_centering](functions-5.md#camera_config_get_centering)
    - [camera_config_get_deceleration](functions-5.md#camera_config_get_deceleration)
    - [camera_config_get_pan_level](functions-5.md#camera_config_get_pan_level)
    - [camera_config_get_x_sensitivity](functions-5.md#camera_config_get_x_sensitivity)
@@ -1658,6 +1693,8 @@
    - [camera_config_invert_x](functions-5.md#camera_config_invert_x)
    - [camera_config_invert_y](functions-5.md#camera_config_invert_y)
    - [camera_config_is_analog_cam_enabled](functions-5.md#camera_config_is_analog_cam_enabled)
+   - [camera_config_is_collision_enabled](functions-5.md#camera_config_is_collision_enabled)
+   - [camera_config_is_dpad_enabled](functions-5.md#camera_config_is_dpad_enabled)
    - [camera_config_is_free_cam_enabled](functions-5.md#camera_config_is_free_cam_enabled)
    - [camera_config_is_mouse_look_enabled](functions-5.md#camera_config_is_mouse_look_enabled)
    - [camera_config_is_x_inverted](functions-5.md#camera_config_is_x_inverted)
@@ -1668,14 +1705,29 @@
    - [camera_config_set_x_sensitivity](functions-5.md#camera_config_set_x_sensitivity)
    - [camera_config_set_y_sensitivity](functions-5.md#camera_config_set_y_sensitivity)
    - [camera_freeze](functions-5.md#camera_freeze)
+   - [camera_get_allow_toxic_gas_camera](functions-5.md#camera_get_allow_toxic_gas_camera)
    - [camera_get_checking_surfaces](functions-5.md#camera_get_checking_surfaces)
+   - [camera_get_romhack_override](functions-5.md#camera_get_romhack_override)
    - [camera_is_frozen](functions-5.md#camera_is_frozen)
    - [camera_reset_overrides](functions-5.md#camera_reset_overrides)
    - [camera_romhack_allow_centering](functions-5.md#camera_romhack_allow_centering)
    - [camera_romhack_allow_dpad_usage](functions-5.md#camera_romhack_allow_dpad_usage)
+   - [camera_romhack_allow_only_mods](functions-5.md#camera_romhack_allow_only_mods)
+   - [camera_romhack_get_allow_centering](functions-5.md#camera_romhack_get_allow_centering)
+   - [camera_romhack_get_allow_dpad_usage](functions-5.md#camera_romhack_get_allow_dpad_usage)
+   - [camera_romhack_get_collisions](functions-5.md#camera_romhack_get_collisions)
+   - [camera_romhack_get_zoomed_in_dist](functions-5.md#camera_romhack_get_zoomed_in_dist)
+   - [camera_romhack_get_zoomed_in_height](functions-5.md#camera_romhack_get_zoomed_in_height)
+   - [camera_romhack_get_zoomed_out_dist](functions-5.md#camera_romhack_get_zoomed_out_dist)
+   - [camera_romhack_get_zoomed_out_height](functions-5.md#camera_romhack_get_zoomed_out_height)
+   - [camera_romhack_set_zoomed_in_dist](functions-5.md#camera_romhack_set_zoomed_in_dist)
+   - [camera_romhack_set_zoomed_in_height](functions-5.md#camera_romhack_set_zoomed_in_height)
+   - [camera_romhack_set_zoomed_out_dist](functions-5.md#camera_romhack_set_zoomed_out_dist)
+   - [camera_romhack_set_zoomed_out_height](functions-5.md#camera_romhack_set_zoomed_out_height)
    - [camera_set_checking_surfaces](functions-5.md#camera_set_checking_surfaces)
    - [camera_set_romhack_override](functions-5.md#camera_set_romhack_override)
    - [camera_unfreeze](functions-5.md#camera_unfreeze)
+   - [rom_hack_cam_set_collisions](functions-5.md#rom_hack_cam_set_collisions)
 
 <br />
 
@@ -1697,58 +1749,63 @@
 <br />
 
 - smlua_gfx_utils.h
-   - [get_fog_color](functions-5.md#get_fog_color)
-   - [get_fog_intensity](functions-5.md#get_fog_intensity)
-   - [get_lighting_color](functions-5.md#get_lighting_color)
-   - [get_lighting_color_ambient](functions-5.md#get_lighting_color_ambient)
-   - [get_lighting_dir](functions-5.md#get_lighting_dir)
-   - [get_skybox](functions-5.md#get_skybox)
-   - [get_skybox_color](functions-5.md#get_skybox_color)
-   - [get_vertex_color](functions-5.md#get_vertex_color)
-   - [set_fog_color](functions-5.md#set_fog_color)
-   - [set_fog_intensity](functions-5.md#set_fog_intensity)
-   - [set_lighting_color](functions-5.md#set_lighting_color)
-   - [set_lighting_color_ambient](functions-5.md#set_lighting_color_ambient)
-   - [set_lighting_dir](functions-5.md#set_lighting_dir)
-   - [set_override_far](functions-5.md#set_override_far)
-   - [set_override_fov](functions-5.md#set_override_fov)
-   - [set_override_near](functions-5.md#set_override_near)
-   - [set_override_skybox](functions-5.md#set_override_skybox)
-   - [set_skybox_color](functions-5.md#set_skybox_color)
-   - [set_vertex_color](functions-5.md#set_vertex_color)
+   - [get_fog_color](functions-6.md#get_fog_color)
+   - [get_fog_intensity](functions-6.md#get_fog_intensity)
+   - [get_lighting_color](functions-6.md#get_lighting_color)
+   - [get_lighting_color_ambient](functions-6.md#get_lighting_color_ambient)
+   - [get_lighting_dir](functions-6.md#get_lighting_dir)
+   - [get_skybox](functions-6.md#get_skybox)
+   - [get_skybox_color](functions-6.md#get_skybox_color)
+   - [get_vertex_color](functions-6.md#get_vertex_color)
+   - [gfx_get_vtx](functions-6.md#gfx_get_vtx)
+   - [gfx_get_vtx_count](functions-6.md#gfx_get_vtx_count)
+   - [gfx_parse](functions-6.md#gfx_parse)
+   - [gfx_set_combine_lerp](functions-6.md#gfx_set_combine_lerp)
+   - [gfx_set_texture_image](functions-6.md#gfx_set_texture_image)
+   - [set_fog_color](functions-6.md#set_fog_color)
+   - [set_fog_intensity](functions-6.md#set_fog_intensity)
+   - [set_lighting_color](functions-6.md#set_lighting_color)
+   - [set_lighting_color_ambient](functions-6.md#set_lighting_color_ambient)
+   - [set_lighting_dir](functions-6.md#set_lighting_dir)
+   - [set_override_far](functions-6.md#set_override_far)
+   - [set_override_fov](functions-6.md#set_override_fov)
+   - [set_override_near](functions-6.md#set_override_near)
+   - [set_override_skybox](functions-6.md#set_override_skybox)
+   - [set_skybox_color](functions-6.md#set_skybox_color)
+   - [set_vertex_color](functions-6.md#set_vertex_color)
 
 <br />
 
 - smlua_level_utils.h
-   - [level_is_vanilla_level](functions-5.md#level_is_vanilla_level)
-   - [level_register](functions-5.md#level_register)
-   - [smlua_level_util_change_area](functions-5.md#smlua_level_util_change_area)
-   - [smlua_level_util_get_info](functions-5.md#smlua_level_util_get_info)
-   - [smlua_level_util_get_info_from_course_num](functions-5.md#smlua_level_util_get_info_from_course_num)
-   - [smlua_level_util_get_info_from_short_name](functions-5.md#smlua_level_util_get_info_from_short_name)
-   - [warp_exit_level](functions-5.md#warp_exit_level)
-   - [warp_restart_level](functions-5.md#warp_restart_level)
-   - [warp_to_castle](functions-5.md#warp_to_castle)
-   - [warp_to_level](functions-5.md#warp_to_level)
-   - [warp_to_start_level](functions-5.md#warp_to_start_level)
-   - [warp_to_warpnode](functions-5.md#warp_to_warpnode)
+   - [level_is_vanilla_level](functions-6.md#level_is_vanilla_level)
+   - [level_register](functions-6.md#level_register)
+   - [smlua_level_util_change_area](functions-6.md#smlua_level_util_change_area)
+   - [smlua_level_util_get_info](functions-6.md#smlua_level_util_get_info)
+   - [smlua_level_util_get_info_from_course_num](functions-6.md#smlua_level_util_get_info_from_course_num)
+   - [smlua_level_util_get_info_from_short_name](functions-6.md#smlua_level_util_get_info_from_short_name)
+   - [warp_exit_level](functions-6.md#warp_exit_level)
+   - [warp_restart_level](functions-6.md#warp_restart_level)
+   - [warp_to_castle](functions-6.md#warp_to_castle)
+   - [warp_to_level](functions-6.md#warp_to_level)
+   - [warp_to_start_level](functions-6.md#warp_to_start_level)
+   - [warp_to_warpnode](functions-6.md#warp_to_warpnode)
 
 <br />
 
 - smlua_math_utils.h
-   - [clamp](functions-5.md#clamp)
-   - [clampf](functions-5.md#clampf)
-   - [degrees_to_sm64](functions-5.md#degrees_to_sm64)
-   - [hypotf](functions-5.md#hypotf)
-   - [max](functions-5.md#max)
-   - [maxf](functions-5.md#maxf)
-   - [min](functions-5.md#min)
-   - [minf](functions-5.md#minf)
-   - [radians_to_sm64](functions-5.md#radians_to_sm64)
-   - [sm64_to_degrees](functions-5.md#sm64_to_degrees)
-   - [sm64_to_radians](functions-5.md#sm64_to_radians)
-   - [sqr](functions-5.md#sqr)
-   - [sqrf](functions-5.md#sqrf)
+   - [clamp](functions-6.md#clamp)
+   - [clampf](functions-6.md#clampf)
+   - [degrees_to_sm64](functions-6.md#degrees_to_sm64)
+   - [hypotf](functions-6.md#hypotf)
+   - [max](functions-6.md#max)
+   - [maxf](functions-6.md#maxf)
+   - [min](functions-6.md#min)
+   - [minf](functions-6.md#minf)
+   - [radians_to_sm64](functions-6.md#radians_to_sm64)
+   - [sm64_to_degrees](functions-6.md#sm64_to_degrees)
+   - [sm64_to_radians](functions-6.md#sm64_to_radians)
+   - [sqr](functions-6.md#sqr)
+   - [sqrf](functions-6.md#sqrf)
 
 <br />
 
@@ -1763,6 +1820,8 @@
    - [djui_popup_create_global](functions-6.md#djui_popup_create_global)
    - [djui_reset_popup_disabled_override](functions-6.md#djui_reset_popup_disabled_override)
    - [djui_set_popup_disabled_override](functions-6.md#djui_set_popup_disabled_override)
+   - [get_active_mod](functions-6.md#get_active_mod)
+   - [get_area_update_counter](functions-6.md#get_area_update_counter)
    - [get_coopnet_id](functions-6.md#get_coopnet_id)
    - [get_current_save_file_num](functions-6.md#get_current_save_file_num)
    - [get_date_and_time](functions-6.md#get_date_and_time)
@@ -1830,6 +1889,11 @@
 <br />
 
 - smlua_obj_utils.h
+   - [geo_get_current_object](functions-6.md#geo_get_current_object)
+   - [get_current_object](functions-6.md#get_current_object)
+   - [get_cutscene_focus](functions-6.md#get_cutscene_focus)
+   - [get_dialog_object](functions-6.md#get_dialog_object)
+   - [get_secondary_camera_focus](functions-6.md#get_secondary_camera_focus)
    - [get_temp_object_hitbox](functions-6.md#get_temp_object_hitbox)
    - [get_trajectory](functions-6.md#get_trajectory)
    - [obj_check_hitbox_overlap](functions-6.md#obj_check_hitbox_overlap)
@@ -1844,6 +1908,7 @@
    - [obj_get_first_with_behavior_id](functions-6.md#obj_get_first_with_behavior_id)
    - [obj_get_first_with_behavior_id_and_field_f32](functions-6.md#obj_get_first_with_behavior_id_and_field_f32)
    - [obj_get_first_with_behavior_id_and_field_s32](functions-6.md#obj_get_first_with_behavior_id_and_field_s32)
+   - [obj_get_model_id_extended](functions-6.md#obj_get_model_id_extended)
    - [obj_get_nearest_object_with_behavior_id](functions-6.md#obj_get_nearest_object_with_behavior_id)
    - [obj_get_next](functions-6.md#obj_get_next)
    - [obj_get_next_with_same_behavior_id](functions-6.md#obj_get_next_with_same_behavior_id)
@@ -1868,6 +1933,8 @@
    - [obj_set_field_u32](functions-6.md#obj_set_field_u32)
    - [obj_set_model_extended](functions-6.md#obj_set_model_extended)
    - [obj_set_vel](functions-6.md#obj_set_vel)
+   - [set_cutscene_focus](functions-6.md#set_cutscene_focus)
+   - [set_secondary_camera_focus](functions-6.md#set_secondary_camera_focus)
    - [set_whirlpools](functions-6.md#set_whirlpools)
    - [spawn_non_sync_object](functions-6.md#spawn_non_sync_object)
    - [spawn_sync_object](functions-6.md#spawn_sync_object)
@@ -1930,6 +1997,7 @@
    - [find_poison_gas_level](functions-6.md#find_poison_gas_level)
    - [find_wall_collisions](functions-6.md#find_wall_collisions)
    - [find_water_level](functions-6.md#find_water_level)
+   - [set_find_wall_direction](functions-6.md#set_find_wall_direction)
 
 <br />
 
@@ -2444,6 +2512,56 @@ print(marioGfx == cast_graph_node(node)) -- true
 
 ### Returns
 - GraphNode(...)
+
+### C Prototype
+N/A
+
+[:arrow_up_small:](#)
+
+<br />
+
+## [get_uncolored_string](#get_uncolored_string)
+
+Removes color codes from a string.
+
+### Lua Example
+```lua
+print(get_uncolored_string("\#210059\Colored \#FF086F\String")) -- "Colored String"
+```
+
+### Parameters
+| Field | Type |
+| ----- | ---- |
+| str   | 'string' |
+
+### Returns
+- `string`
+
+### C Prototype
+N/A
+
+[:arrow_up_small:](#)
+
+<br />
+
+## [gfx_set_command](#gfx_set_command)
+
+Sets the specified display list command on the display list given.
+
+### Lua Example
+```lua
+gfx_set_command(gfx, "gsDPSetEnvColor", 0x00, 0xFF, 0x00, 0xFF)
+```
+
+### Parameters
+| Field | Type |
+| ----- | ---- |
+| gfx   | [Gfx](structs.md#Gfx) |
+| command | `string` |
+| (Any number of arguments) | `integer` |
+
+### Returns
+- None
 
 ### C Prototype
 N/A

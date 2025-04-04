@@ -45,31 +45,14 @@ const Gfx dl_djui_simple_rect[] = {
 };
 
 f32 djui_gfx_get_scale(void) {
-#ifndef TOUCH_CONTROLS
     if (configDjuiScale == 0) { // auto
         u32 windowWidth, windowHeight;
         wm_api->get_dimensions(&windowWidth, &windowHeight);
-        if (windowHeight < 768) {
-            return 0.5f;
-        } else if (windowHeight < 1440) {
-            return 1.0f;
-        } else {
-            return 1.5f;
-        }
-    } else {
-        switch (configDjuiScale) {
-            case 1:  return 0.5f;
-            case 2:  return 0.85f;
-            case 3:  return 1.0f;
-            case 4:  return 1.5f;
-            default: return 1.0f;
-        }
-    }
-#else
-    if (configDjuiScale == 0) { // auto
-        u32 windowWidth, windowHeight;
-        wm_api->get_dimensions(&windowWidth, &windowHeight);
+#ifdef __ANDROID__
         u32 correctHeight = windowHeight / 720.0f;
+#else
+        u32 correctHeight = windowHeight;
+#endif
         if (correctHeight < 768) {
             return 0.5f;
         } else if (correctHeight < 1440) {
@@ -86,7 +69,6 @@ f32 djui_gfx_get_scale(void) {
             default: return 1.0f;
         }
     }
-#endif
 }
 
 /////////////////////////////////////////////
@@ -154,13 +136,15 @@ void djui_gfx_render_texture_tile(const u8* texture, u32 w, u32 h, u32 bitSize, 
     }
 
     f32 aspect = tileH ? ((f32)tileW / (f32)tileH) : 1;
-    f32 halfPxX = font && configWindow.msaa > 0 ? 1024.0f / (f32)w : 0;
-    f32 halfPxY = font && configWindow.msaa > 0 ? 1024.0f / (f32)h : 0;
+
     // I don't know why adding 1 to all of the UVs seems to fix rendering, but it does...
-    vtx[0] = (Vtx) {{{ 0,          -1, 0 }, 0, { ( tileX          * 2048.0f) / (f32)w - halfPxX, ((tileY + tileH) * 2048.0f) / (f32)h - halfPxY }, { 0xff, 0xff, 0xff, 0xff }}};
-    vtx[1] = (Vtx) {{{ 1 * aspect, -1, 0 }, 0, { ((tileX + tileW) * 2048.0f) / (f32)w - halfPxX, ((tileY + tileH) * 2048.0f) / (f32)h - halfPxY }, { 0xff, 0xff, 0xff, 0xff }}};
-    vtx[2] = (Vtx) {{{ 1 * aspect,  0, 0 }, 0, { ((tileX + tileW) * 2048.0f) / (f32)w - halfPxX, ( tileY          * 2048.0f) / (f32)h - halfPxY }, { 0xff, 0xff, 0xff, 0xff }}};
-    vtx[3] = (Vtx) {{{ 0,           0, 0 }, 0, { ( tileX          * 2048.0f) / (f32)w - halfPxX, ( tileY          * 2048.0f) / (f32)h - halfPxY }, { 0xff, 0xff, 0xff, 0xff }}};
+    // this should be tested carefully. it definitely fixes some stuff, but what does it break?
+    f32 offsetX = font ? -1024.0f / (f32)w : 1;
+    f32 offsetY = font ? -1024.0f / (f32)h : 1;
+    vtx[0] = (Vtx) {{{ 0,          -1, 0 }, 0, { ( tileX          * 2048.0f) / (f32)w + offsetX, ((tileY + tileH) * 2048.0f) / (f32)h + offsetY }, { 0xff, 0xff, 0xff, 0xff }}};
+    vtx[2] = (Vtx) {{{ 1 * aspect,  0, 0 }, 0, { ((tileX + tileW) * 2048.0f) / (f32)w + offsetX, ( tileY          * 2048.0f) / (f32)h + offsetY }, { 0xff, 0xff, 0xff, 0xff }}};
+    vtx[1] = (Vtx) {{{ 1 * aspect, -1, 0 }, 0, { ((tileX + tileW) * 2048.0f) / (f32)w + offsetX, ((tileY + tileH) * 2048.0f) / (f32)h + offsetY }, { 0xff, 0xff, 0xff, 0xff }}};
+    vtx[3] = (Vtx) {{{ 0,           0, 0 }, 0, { ( tileX          * 2048.0f) / (f32)w + offsetX, ( tileY          * 2048.0f) / (f32)h + offsetY }, { 0xff, 0xff, 0xff, 0xff }}};
 
     gSPClearGeometryMode(gDisplayListHead++, G_LIGHTING);
     gDPSetCombineMode(gDisplayListHead++, G_CC_FADEA, G_CC_FADEA);

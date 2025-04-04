@@ -178,6 +178,10 @@ struct SmCodeGlyph sSmCodeGlyphs[] = {
     { "ґ", 'R', 0, 0 },
 };
 
+struct SmCodeGlyph sSmCodeGlyphs_EMOJI[] = {
+#include "emoji_glyphs.h"
+};
+
 struct SmCodeGlyph sSmCodeGlyphs_JP[] = {
 #include "jp_glyphs.h"
 };
@@ -244,7 +248,20 @@ void djui_unicode_init(void) {
         assert(key > 127);
         hmap_put(sCharMap, key, glyph);
     }
-    
+
+    //添加 Emoji 字体
+    size_t emojiCount = sizeof(sSmCodeGlyphs_EMOJI) / sizeof(sSmCodeGlyphs_EMOJI[0]);
+    for (size_t i = 0; i < emojiCount; i++) {
+        struct SmCodeGlyph* glyph = &sSmCodeGlyphs_EMOJI[i];
+        glyph->spriteIndex = 0x020000 + i;  // 为 Emoji 分配索引
+
+        u64 key = convert_unicode_char_to_u64(glyph->unicode);
+        s32 bytes = count_bytes_for_char(glyph->unicode);
+        assert(bytes >= 2 && bytes <= 4);
+        assert(key > 127);
+        hmap_put(sCharMap, key, glyph);
+    }
+
     //add japanese glyphs
     size_t jpCount = sizeof(sSmCodeGlyphs_JP) / sizeof(sSmCodeGlyphs_JP[0]);
     for (size_t i = 0; i < jpCount; i++) {
@@ -264,6 +281,19 @@ void djui_unicode_init(void) {
         assert((u32)glyph->base < 128);
         assert((u32)glyph->base > SPRITE_INDEX_START_CHAR);
         glyph->spriteIndex = ((u32)glyph->base) - SPRITE_INDEX_START_CHAR;
+
+        u64 key = convert_unicode_char_to_u64(glyph->unicode);
+        s32 bytes = count_bytes_for_char(glyph->unicode);
+        assert(bytes >= 2 && bytes <= 4);
+        assert(key > 127);
+        hmap_put(sCharMap, key, glyph);
+    }
+
+    //添加 Emoji 字体
+    size_t emojiCount = sizeof(sSmCodeGlyphs_EMOJI) / sizeof(sSmCodeGlyphs_EMOJI[0]);
+    for (size_t i = 0; i < emojiCount; i++) {
+        struct SmCodeGlyph* glyph = &sSmCodeGlyphs_EMOJI[i];
+        glyph->spriteIndex = 0x020000 + i;  // 为 Emoji 分配索引
 
         u64 key = convert_unicode_char_to_u64(glyph->unicode);
         s32 bytes = count_bytes_for_char(glyph->unicode);

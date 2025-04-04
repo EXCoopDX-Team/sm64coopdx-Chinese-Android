@@ -23,6 +23,8 @@ int gSmLuaCPointers = 0;
 int gSmLuaCObjectMetatable = 0;
 int gSmLuaCPointerMetatable = 0;
 
+CObject *gCameraCObject = NULL;
+
 struct LuaObjectField* smlua_get_object_field_from_ot(struct LuaObjectTable* ot, const char* key) {
     // binary search
     s32 min = 0;
@@ -66,6 +68,49 @@ bool smlua_valid_lot(u16 lot) {
 
 bool smlua_valid_lvt(u16 lvt) {
     return (lvt < LVT_MAX);
+}
+
+const char *sLuaLvtNames[] = {
+    [LVT_BOOL] = "bool",
+    [LVT_BOOL_P] = "bool Pointer",
+    [LVT_U8] = "u8",
+    [LVT_U8_P] = "u8 Pointer",
+    [LVT_U16] = "u16",
+    [LVT_U16_P] = "u16 Pointer",
+    [LVT_U32] = "u32",
+    [LVT_U32_P] = "u32 Pointer",
+    [LVT_S8] = "s8",
+    [LVT_S8_P] = "s8 Pointer",
+    [LVT_S16] = "s16",
+    [LVT_S16_P] = "s16 Pointer",
+    [LVT_S32] = "s32",
+    [LVT_S32_P] = "s32 Pointer",
+    [LVT_F32] = "f32",
+    [LVT_F32_P] = "f32 Pointer",
+    [LVT_U64] = "u64",
+    [LVT_U64_P] = "u64 Pointer",
+    [LVT_COBJECT] = "CObject",
+    [LVT_COBJECT_P] = "CObject Pointer",
+    [LVT_STRING] = "string",
+    [LVT_STRING_P] = "string Pointer",
+    [LVT_BEHAVIORSCRIPT] = "BehaviorScript",
+    [LVT_BEHAVIORSCRIPT_P] = "BehaviorScript Pointer",
+    [LVT_OBJECTANIMPOINTER] = "ObjectAnimPointer",
+    [LVT_OBJECTANIMPOINTER_P] = "ObjectAnimPointer Pointer",
+    [LVT_COLLISION] = "Collision",
+    [LVT_COLLISION_P] = "Collision Pointer",
+    [LVT_LEVELSCRIPT] = "LevelScript",
+    [LVT_LEVELSCRIPT_P] = "LevelScript Pointer",
+    [LVT_TRAJECTORY] = "Trajectory",
+    [LVT_TRAJECTORY_P] = "Trajectory Pointer",
+    [LVT_LUAFUNCTION] = "LuaFunction",
+    [LVT_POINTER] = "Pointer",
+    [LVT_MAX] = "Max",
+};
+
+const char *smlua_get_lvt_name(u16 lvt) {
+    assert(smlua_valid_lvt(lvt)); // if this is false, it means there's an invalid lvt somewhere
+    return sLuaLvtNames[lvt];
 }
 
   //////////////////
@@ -330,24 +375,24 @@ struct LuaObjectField* smlua_get_custom_field(lua_State* L, u32 lot, int keyInde
 
 static bool smlua_push_field(lua_State* L, u8* p, struct LuaObjectField *data) {
     switch (data->valueType) {
-        case LVT_BOOL:              lua_pushboolean(L, *(u8* )p);              break;
-        case LVT_U8:                lua_pushinteger(L, *(u8* )p);              break;
-        case LVT_U16:               lua_pushinteger(L, *(u16*)p);              break;
-        case LVT_U32:               lua_pushinteger(L, *(u32*)p);              break;
-        case LVT_S8:                lua_pushinteger(L, *(s8* )p);              break;
-        case LVT_S16:               lua_pushinteger(L, *(s16*)p);              break;
-        case LVT_S32:               lua_pushinteger(L, *(s32*)p);              break;
-        case LVT_F32:               lua_pushnumber( L, *(f32*)p);              break;
-        case LVT_U64:               lua_pushinteger(L, *(u64*)p);              break;
-        case LVT_COBJECT:           smlua_push_object(L, data->lot, p);        break;
-        case LVT_COBJECT_P:         smlua_push_object(L, data->lot, *(u8**)p); break;
-        case LVT_STRING:            lua_pushstring(L, (char*)p);               break;
-        case LVT_STRING_P:          lua_pushstring(L, *(char**)p);             break;
-        case LVT_BEHAVIORSCRIPT:    lua_pushinteger(L, *(s32*)p);              break;
-        case LVT_OBJECTANIMPOINTER: lua_pushinteger(L, *(s32*)p);              break;
-        case LVT_COLLISION:         lua_pushinteger(L, *(s32*)p);              break;
-        case LVT_LEVELSCRIPT:       lua_pushinteger(L, *(s32*)p);              break;
-        case LVT_TRAJECTORY:        lua_pushinteger(L, *(s16*)p);              break;
+        case LVT_BOOL:              lua_pushboolean(L, *(u8* )p);                    break;
+        case LVT_U8:                lua_pushinteger(L, *(u8* )p);                    break;
+        case LVT_U16:               lua_pushinteger(L, *(u16*)p);                    break;
+        case LVT_U32:               lua_pushinteger(L, *(u32*)p);                    break;
+        case LVT_S8:                lua_pushinteger(L, *(s8* )p);                    break;
+        case LVT_S16:               lua_pushinteger(L, *(s16*)p);                    break;
+        case LVT_S32:               lua_pushinteger(L, *(s32*)p);                    break;
+        case LVT_F32:               lua_pushnumber( L, *(f32*)p);                    break;
+        case LVT_U64:               lua_pushinteger(L, *(u64*)p);                    break;
+        case LVT_COBJECT:           smlua_push_object(L, data->lot, p, NULL);        break;
+        case LVT_COBJECT_P:         smlua_push_object(L, data->lot, *(u8**)p, NULL); break;
+        case LVT_STRING:            lua_pushstring(L, (char*)p);                     break;
+        case LVT_STRING_P:          lua_pushstring(L, *(char**)p);                   break;
+        case LVT_BEHAVIORSCRIPT:    lua_pushinteger(L, *(s32*)p);                    break;
+        case LVT_OBJECTANIMPOINTER: lua_pushinteger(L, *(s32*)p);                    break;
+        case LVT_COLLISION:         lua_pushinteger(L, *(s32*)p);                    break;
+        case LVT_LEVELSCRIPT:       lua_pushinteger(L, *(s32*)p);                    break;
+        case LVT_TRAJECTORY:        lua_pushinteger(L, *(s16*)p);                    break;
 
         // pointers
         case LVT_BOOL_P:
@@ -364,7 +409,7 @@ static bool smlua_push_field(lua_State* L, u8* p, struct LuaObjectField *data) {
         case LVT_COLLISION_P:
         case LVT_LEVELSCRIPT_P:
         case LVT_TRAJECTORY_P:
-            smlua_push_pointer(L, data->valueType, *(u8**)p);
+            smlua_push_pointer(L, data->valueType, *(u8**)p, NULL);
             break;
 
         default:
@@ -387,6 +432,10 @@ static bool smlua_set_field(lua_State* L, u8* p, struct LuaObjectField *data) {
         case LVT_U64: *(s64*)p = smlua_to_integer(L, 3); break;
 
         case LVT_COBJECT_P:
+            if (lua_isnil(L, 3)) {
+                *(u8**)p = NULL;
+                break;
+            }
             valuePointer = smlua_to_cobject(L, 3, data->lot);
             if (gSmLuaConvertSuccess) {
                 *(u8**)p = valuePointer;
@@ -407,6 +456,10 @@ static bool smlua_set_field(lua_State* L, u8* p, struct LuaObjectField *data) {
         case LVT_OBJECTANIMPOINTER_P:
         case LVT_COLLISION_P:
         case LVT_TRAJECTORY_P:
+            if (lua_isnil(L, 3)) {
+                *(u8**)p = NULL;
+                break;
+            }
             valuePointer = smlua_to_cpointer(L, 3, data->valueType);
             if (gSmLuaConvertSuccess) {
                 *(u8**)p = valuePointer;
@@ -424,11 +477,62 @@ static int smlua__get_field(lua_State* L) {
 
     const CObject *cobj = lua_touserdata(L, 1);
     enum LuaObjectType lot = cobj->lot;
-    #ifdef TARGET_ANDROID
+#ifdef TARGET_ANDROID
     u64 pointer = (u64)(uintptr_t) cobj->pointer;
-    #else
+#else
     u64 pointer = (u64)(intptr_t) cobj->pointer;
-    #endif
+#endif
+
+    if (cobj->freed) {
+        LOG_LUA_LINE("_get_field on freed object");
+        return 0;
+    }
+
+    if (lot == LOT_ARRAY) {
+        struct LuaObjectField* data = cobj->info;
+        if (!data) {
+            LOG_LUA_LINE("Tried to get invalid cobject array");
+            return 0;
+        }
+
+        int isNum;
+        u32 key = lua_tointegerx(L, 2, &isNum);
+        if (!isNum) {
+            const char *key = lua_tostring(L, 2);
+            if (key && key[0] == '_') {
+                if (strcmp(key, "_lot") == 0) {
+                    lua_pushinteger(L, data->lot);
+                    return 1;
+                }
+                if (strcmp(key, "_pointer") == 0) {
+                    lua_pushinteger(L, pointer);
+                    return 1;
+                }
+            }
+            LOG_LUA_LINE("Tried to get a non-integer field of cobject array");
+            return 0;
+        }
+
+        if (key == 0) {
+            LOG_LUA_LINE("Key is out of bounds for array: key '%u' (help: array starts at 1)", key);
+            return 0;
+        }
+
+        key--; // Lua is +1 indexed
+        if (key >= data->count) {
+            LOG_LUA_LINE("Key is out of bounds for array: key '%u'", key);
+            return 0;
+        }
+
+        u8* p = ((u8*)(intptr_t)pointer) + (key * data->size);
+        if (smlua_push_field(L, p, data)) {
+            LOG_LUA_LINE("_get_field on unimplemented type '%d', key '%u'", data->valueType, key);
+            return 0;
+        }
+
+        LUA_STACK_CHECK_END();
+        return 1;
+    }
 
     const char *key = lua_tostring(L, 2);
     if (!key) {
@@ -448,17 +552,12 @@ static int smlua__get_field(lua_State* L) {
         }
     }
 
-    if (cobj->freed) {
-        LOG_LUA_LINE("_get_field on freed object");
-        return 0;
-    }
-
     struct LuaObjectField* data = smlua_get_object_field(lot, key);
     if (data == NULL) {
         data = smlua_get_custom_field(L, lot, 2);
     }
     if (data == NULL) {
-        LOG_LUA_LINE("_get_field on invalid key '%s', lot '%d'", key, lot);
+        LOG_LUA_LINE("_get_field on invalid key '%s', lot '%s'", key, smlua_get_lot_name(lot));
         return 0;
     }
 
@@ -469,14 +568,10 @@ static int smlua__get_field(lua_State* L) {
             return 0;
         }
     } else {
-        lua_newtable(L);
-        for (u16 i = 0; i < data->count; i++) {
-            lua_pushinteger(L, i + 1);
-            if (smlua_push_field(L, p + (i * data->size), data)) {
-                LOG_LUA_LINE("_get_field on unimplemented type '%d', key '%s'", data->valueType, key);
-                return 0;
-            }
-            lua_settable(L, -3);
+        smlua_push_object(L, LOT_ARRAY, p, data);
+        if (!gSmLuaConvertSuccess) {
+            LOG_LUA_LINE("_set_field failed to retrieve value type '%d', key '%s'", data->valueType, key);
+            return 0;
         }
     }
 
@@ -489,20 +584,49 @@ static int smlua__set_field(lua_State* L) {
 
     const CObject *cobj = lua_touserdata(L, 1);
     enum LuaObjectType lot = cobj->lot;
-    #ifdef TARGET_ANDROID
+#ifdef TARGET_ANDROID
     u64 pointer = (u64)(uintptr_t) cobj->pointer;
-    #else
+#else
     u64 pointer = (u64)(intptr_t) cobj->pointer;
-    #endif
+#endif
+
+    if (cobj->freed) {
+        LOG_LUA_LINE("_set_field on freed object");
+        return 0;
+    }
+
+    if (lot == LOT_ARRAY) {
+        struct LuaObjectField* data = cobj->info;
+        if (!data) {
+            LOG_LUA_LINE("Tried to set invalid cobject array");
+            return 0;
+        }
+
+        u32 key = lua_tointeger(L, 2);
+        if (!key) {
+            LOG_LUA_LINE("Tried to set a non-integer field of cobject array");
+            return 0;
+        }
+
+        key--; // Lua is +1 indexed
+        if (key >= data->count) {
+            LOG_LUA_LINE("Key is out of bounds for array: key '%u'", key);
+            return 0;
+        }
+
+        u8* p = ((u8*)(intptr_t)pointer) + (key * data->size);
+        if (smlua_set_field(L, p, data)) {
+            LOG_LUA_LINE("_set_field on unimplemented type '%d', key '%u'", data->valueType, key);
+            return 0;
+        }
+
+        LUA_STACK_CHECK_END();
+        return 1;
+    }
 
     const char *key = lua_tostring(L, 2);
     if (!key) {
         LOG_LUA_LINE("Tried to set a non-string field of cobject");
-        return 0;
-    }
-
-    if (cobj->freed) {
-        LOG_LUA_LINE("_set_field on freed object");
         return 0;
     }
 
@@ -522,29 +646,13 @@ static int smlua__set_field(lua_State* L) {
     }
 
     u8* p = ((u8*)(intptr_t)pointer) + data->valueOffset;
-    if (data->count == 1) {
-        if (smlua_set_field(L, p, data)) {
-            LOG_LUA_LINE("_set_field on unimplemented type '%d', key '%s'", data->valueType, key);
-            return 0;
-        }
-        if (!gSmLuaConvertSuccess) {
-            LOG_LUA_LINE("_set_field failed to retrieve value type '%d', key '%s'", data->valueType, key);
-            return 0;
-        }
-    } else {
-        lua_newtable(L);
-        for (u16 i = 0; i < data->count; i++) {
-            lua_pushinteger(L, i + 1);
-            if (smlua_set_field(L, p + (i * data->size), data)) {
-                LOG_LUA_LINE("_set_field on unimplemented type '%d', key '%s'", data->valueType, key);
-                return 0;
-            }
-            if (!gSmLuaConvertSuccess) {
-                LOG_LUA_LINE("_set_field failed to retrieve value type '%d', key '%s'", data->valueType, key);
-                return 0;
-            }
-            lua_settable(L, -3);
-        }
+    if (smlua_set_field(L, p, data)) {
+        LOG_LUA_LINE("_set_field on unimplemented type '%d', key '%s'", data->valueType, key);
+        return 0;
+    }
+    if (!gSmLuaConvertSuccess) {
+        LOG_LUA_LINE("_set_field failed to retrieve value type '%d', key '%s'", data->valueType, key);
+        return 0;
     }
 
     LUA_STACK_CHECK_END();
@@ -620,23 +728,15 @@ void smlua_cobject_init_globals(void) {
         int t = lua_gettop(gLuaState); \
         for (s32 i = 0; i < iterator; i++) { \
             lua_pushinteger(L, i); \
-            smlua_push_object(L, lot, &ptr[i]); \
+            smlua_push_object(L, lot, &ptr[i], NULL); \
             lua_settable(L, t); \
         } \
         lua_setglobal(L, #ptr); \
     } \
 
-#define EXPOSE_GLOBAL(lot, ptr) \
-    { \
-        smlua_push_object(L, lot, &ptr); \
-        lua_setglobal(L, #ptr); \
-    } \
-
-#define EXPOSE_GLOBAL_WITH_NAME(lot, ptr, name) \
-    { \
-        smlua_push_object(L, lot, &ptr); \
-        lua_setglobal(L, name); \
-    } \
+#define EXPOSE_GLOBAL(lot, ptr) smlua_push_object(L, lot, &ptr, NULL); lua_setglobal(L, #ptr);
+#define EXPOSE_GLOBAL_PTR(lot, ptr) smlua_push_object(L, lot, ptr, NULL); lua_setglobal(L, #ptr);
+#define EXPOSE_GLOBAL_WITH_NAME(lot, ptr, name) smlua_push_object(L, lot, ptr, NULL); lua_setglobal(L, name);
 
     // Array structs
 
@@ -649,7 +749,7 @@ void smlua_cobject_init_globals(void) {
         int t = lua_gettop(gLuaState);
         for (s32 i = 0; i < gActiveMods.entryCount; i++) {
             lua_pushinteger(L, i);
-            smlua_push_object(L, LOT_MOD, gActiveMods.entries[i]);
+            smlua_push_object(L, LOT_MOD, gActiveMods.entries[i], NULL);
             lua_settable(L, t);
         }
         lua_setglobal(L, "gActiveMods");
@@ -665,9 +765,9 @@ void smlua_cobject_init_globals(void) {
 
     // Structs
 
-    EXPOSE_GLOBAL_WITH_NAME(LOT_GLOBALTEXTURES, gGlobalTextures, "gTextures");
+    EXPOSE_GLOBAL_WITH_NAME(LOT_GLOBALTEXTURES, &gGlobalTextures, "gTextures");
 
-    EXPOSE_GLOBAL_WITH_NAME(LOT_GLOBALOBJECTANIMATIONS, gGlobalObjectAnimations, "gObjectAnimations");
+    EXPOSE_GLOBAL_WITH_NAME(LOT_GLOBALOBJECTANIMATIONS, &gGlobalObjectAnimations, "gObjectAnimations");
 
     EXPOSE_GLOBAL(LOT_PAINTINGVALUES, gPaintingValues);
 
@@ -685,7 +785,7 @@ void smlua_cobject_init_globals(void) {
 
     EXPOSE_GLOBAL(LOT_NAMETAGSSETTINGS, gNametagsSettings);
 
-    EXPOSE_GLOBAL(LOT_CAMERA, gCamera);
+    gCameraCObject = smlua_push_object(L, LOT_CAMERA, gCamera, NULL); lua_setglobal(L, "gCamera");
 }
 
 void smlua_cobject_init_per_file_globals(const char* path) {

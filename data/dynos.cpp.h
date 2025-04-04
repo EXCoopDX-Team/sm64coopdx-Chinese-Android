@@ -849,6 +849,8 @@ const char*      DynOS_Builtin_Actor_GetFromData(const GeoLayout* aData);
 const GeoLayout* DynOS_Builtin_Actor_GetFromIndex(s32 aIndex);
 const char*      DynOS_Builtin_Actor_GetNameFromIndex(s32 aIndex);
 s32              DynOS_Builtin_Actor_GetCount();
+const MacroObject* DynOS_Builtin_LvlMacro_GetFromName(const char* aDataName);
+const char*      DynOS_Builtin_LvlMacro_GetFromData(const MacroObject* aData);
 const GeoLayout* DynOS_Builtin_LvlGeo_GetFromName(const char* aDataName);
 const char*      DynOS_Builtin_LvlGeo_GetFromData(const GeoLayout* aData);
 const Collision* DynOS_Builtin_Col_GetFromName(const char* aDataName);
@@ -970,6 +972,7 @@ struct GraphNode* DynOS_Model_GetGeo(u32 aId);
 u32 DynOS_Model_GetIdFromAsset(void* asset);
 u32 DynOS_Model_GetIdFromGraphNode(struct GraphNode* aNode);
 void DynOS_Model_OverwriteSlot(u32 srcSlot, u32 dstSlot);
+Gfx *DynOS_Model_Duplicate_DisplayList(Gfx* aGfx);
 void DynOS_Model_ClearPool(enum ModelPool aModelPool);
 
 //
