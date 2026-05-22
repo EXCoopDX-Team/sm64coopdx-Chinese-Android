@@ -128,7 +128,10 @@ extern struct WarpCheckpoint gWarpCheckpoint;
 extern s8 gMainMenuDataModified;
 extern s8 gSaveFileModified;
 
+/* |description|Gets the course number's corresponding level number|descriptionEnd| */
 s8 get_level_num_from_course_num(s16 courseNum);
+
+/* |description|Gets the level number's corresponding course number|descriptionEnd| */
 s8 get_level_course_num(s16 levelNum);
 
 /* |description|
@@ -238,6 +241,7 @@ Useful for tracking course-specific progress and enabling shortcuts
 |descriptionEnd| */
 s32 save_file_is_cannon_unlocked(s32 fileIndex, s32 courseIndex);
 
+/* |description|Unlocks the cannon in the current course|descriptionEnd| */
 void save_file_set_cannon_unlocked(void);
 void save_file_set_cap_pos(s16 x, s16 y, s16 z);
 
@@ -245,7 +249,7 @@ void save_file_set_cap_pos(s16 x, s16 y, s16 z);
 Retrieves the current position of Mario's cap, if it is on the ground in the current level and area. The position is stored in the provided `capPos` parameter.
 Useful for tracking the cap's location after it has been dropped or lost
 |descriptionEnd| */
-s32 save_file_get_cap_pos(Vec3s capPos);
+s32 save_file_get_cap_pos(VEC_OUT Vec3s capPos);
 
 void save_file_set_sound_mode(u16 mode);
 

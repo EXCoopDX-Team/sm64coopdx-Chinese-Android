@@ -17,6 +17,7 @@ in_files = [
     "src/pc/djui/djui_theme.h",
     "src/game/object_helpers.h",
     "src/game/mario_step.h",
+    "src/game/ingame_menu.h",
     "src/pc/lua/utils/smlua_anim_utils.h",
     "src/pc/lua/utils/smlua_misc_utils.h",
     "src/pc/lua/utils/smlua_camera_utils.h",
@@ -26,13 +27,14 @@ in_files = [
     "src/pc/network/network.h",
     "src/game/hardcoded.h",
     "src/pc/mods/mod.h",
+    "src/pc/mods/mod_fs.h",
     "src/pc/lua/utils/smlua_audio_utils.h",
     "src/game/paintings.h",
     "src/pc/djui/djui_types.h",
     "src/game/first_person_cam.h",
     "src/game/player_palette.h",
     "src/engine/graph_node.h",
-    "include/PR/gbi.h"
+    "include/PR/gbi.h",
 ]
 
 out_filename_c = 'src/pc/lua/smlua_cobject_autogen.c'
@@ -70,9 +72,6 @@ struct LuaObjectField* smlua_get_object_field_autogen(u16 lot, const char* key);
 #endif
 """
 
-override_field_names = {
-}
-
 override_field_types = {
     "Surface": { "normal": "Vec3f" },
     "Object": { "oAnimations": "ObjectAnimPointer*" },
@@ -82,26 +81,30 @@ override_field_mutable = {
     "NetworkPlayer": [
         "overrideModelIndex",
         "overridePalette",
-        "overridePaletteIndex"
-    ],
-    "Animation": [
-        "values",
-        "index",
+        "overridePaletteIndex",
     ],
 }
 
 override_field_invisible = {
     "Mod": [ "files", "showedScriptWarning" ],
+    "Camera": [ "paletteEditorCapState" ],
     "MarioState": [ "visibleToEnemies" ],
-    "NetworkPlayer": [ "gag", "moderator", "discordId" ],
-    "GraphNode": [ "_guard1", "_guard2" ],
+    "NetworkPlayer": [ "gag", "moderator", "discordId", "rxPacketHash", "rxSeqIds" ],
+    "GraphNode": [ "_guard1", "_guard2", "padding" ],
+    "GraphNodeRoot": ["unk15", "views"],
+    "GraphNodeMasterList": [ "listHeads", "listTails" ],
     "FnGraphNode": [ "luaTokenIndex" ],
     "Object": [ "firstSurface" ],
+    "Animation": [ "unusedBoneCount" ],
     "ModAudio": [ "sound", "decoder", "buffer", "bufferSize", "sampleCopiesTail" ],
+    "Painting": [ "normalDisplayList", "textureMaps", "rippleDisplayList", "ripples" ],
+    "DialogEntry": [ "str" ],
+    "ModFsFile": [ "data", "capacity" ],
+    "ModFs": [ "files" ],
 }
 
 override_field_deprecated = {
-    "NetworkPlayer": [ "paletteIndex", "overridePaletteIndex", "overridePaletteIndexLp" ]
+    "NetworkPlayer": [ "paletteIndex", "overridePaletteIndex", "overridePaletteIndexLp" ],
 }
 
 override_field_immutable = {
@@ -111,11 +114,12 @@ override_field_immutable = {
     "Character": [ "*" ],
     "NetworkPlayer": [ "*" ],
     "TextureInfo": [ "*" ],
-    "Object": ["oSyncID", "coopFlags", "oChainChompSegments", "oWigglerSegments", "oHauntedChairUnk100", "oTTCTreadmillBigSurface", "oTTCTreadmillSmallSurface", "bhvStackIndex", "respawnInfoType", "numSurfaces" ],
+    "Object": ["oSyncID", "coopFlags", "oChainChompSegments", "oWigglerSegments", "oHauntedChairUnk100", "oTTCTreadmillBigSurface", "oTTCTreadmillSmallSurface", "bhvStackIndex", "respawnInfoType", "numSurfaces", "bhvStack" ],
     "GlobalObjectAnimations": [ "*"],
     "SpawnParticlesInfo": [ "model" ],
-    "MarioBodyState": [ "updateTorsoTime" ],
-    "Area": [ "localAreaTimer", "nextSyncID", "unk04", "objectSpawnInfos", "paintingWarpNodes", "warpNodes" ],
+    "WaterDropletParams": [ "model" ],
+    "MarioBodyState": [ "updateTorsoTime", "updateHeadPosTime", "animPartsPos", "animPartsRot", "currAnimPart" ],
+    "Area": [ "localAreaTimer", "nextSyncID", "objectSpawnInfos", "paintingWarpNodes", "warpNodes" ],
     "Mod": [ "*" ],
     "ModFile": [ "*" ],
     "Painting": [ "id", "imageCount", "textureType", "textureWidth", "textureHeight" ],
@@ -128,26 +132,32 @@ override_field_immutable = {
     "GraphNodeObject": [ "angle", "animInfo", "cameraToObject", "node", "pos", "prevAngle", "prevPos", "prevScale", "prevScaleTimestamp", "prevShadowPos", "prevShadowPosTimestamp", "prevThrowMatrix", "prevThrowMatrixTimestamp", "prevTimestamp", "scale", "shadowPos", "sharedChild", "skipInterpolationTimestamp", "throwMatrixPrev", "unk4C", ],
     "GraphNodeObjectParent": [ "sharedChild" ],
     "GraphNodePerspective": [ "unused" ],
-    "GraphNodeSwitchCase": [ "fnNode", "numCases", "unused" ],
-    "ObjectWarpNode": [ "next "],
-    "Animation": [ "length" ],
-    "AnimationTable": [ "count" ],
+    "GraphNodeSwitchCase": [ "fnNode", "unused" ],
+    "GraphNodeRoot": ["node", "areaIndex", "numViews"],
+    "ObjectWarpNode": [ "next" ],
+    "Animation": [ "*" ],
+    "AnimationTable": [ "*" ],
     "Controller": [ "controllerData", "statusData" ],
     "FirstPersonCamera": [ "enabled" ],
     "ModAudio": [ "isStream", "loaded" ],
     "Gfx": [ "w0", "w1" ], # to protect from invalid type conversions
+    "DialogEntry": [ "unused", "linesPerBox", "leftOffset", "width", "str", "text", "replaced"],
+    "ModFsFile": [ "*" ],
+    "ModFs": [ "*" ],
+    "StaticObjectCollision": [ "*" ],
 }
 
 override_field_version_excludes = {
     "oCameraLakituUnk104": "VERSION_JP",
-    "oCoinUnk1B0": "VERSION_JP"
+    "oCoinUnk1B0": "VERSION_JP",
 }
 
 override_allowed_structs = {
     "src/pc/network/network.h": [ "ServerSettings", "NametagsSettings" ],
     "src/pc/djui/djui_types.h": [ "DjuiColor" ],
     "src/game/player_palette.h": [ "PlayerPalette" ],
-    "include/PR/gbi.h": [ "Gfx", "Vtx" ]
+    "src/game/ingame_menu.h" : [ "DialogEntry" ],
+    "include/PR/gbi.h": [ "Gfx", "Vtx" ],
 }
 
 sLuaManuallyDefinedStructs = [{
@@ -165,7 +175,7 @@ sLuaManuallyDefinedStructs = [{
 
 override_types = {
     "Gwords": "Gfx",
-    "Vtx_t": "Vtx"
+    "Vtx_L": "Vtx",
 }
 reversed_override_types = {v: k for k, v in override_types.items()}
 
@@ -273,8 +283,9 @@ def table_to_string(table):
 
 ############################################################################
 
-def parse_struct(struct_str, sortFields = True):
+def parse_struct(struct_str, sortFields = False):
     struct = {}
+    struct_str = strip_anonymous_blocks(struct_str) # Allow unions and sub-structs to be accessed
     match = re.match(r"struct\s*(\w+)?\s*{(.*?)}\s*(\w+)?\s*", struct_str.replace("typedef ", ""), re.DOTALL)
     struct_name, body, trailing_name = match.groups()
     identifier = struct_name if struct_name else trailing_name
@@ -314,6 +325,14 @@ def parse_struct(struct_str, sortFields = True):
         field['identifier'] = field_id.strip()
         field['field_str'] = field_str
 
+        # handle function members
+        if field['type'].startswith(cobject_function_identifier):
+            field_function = field['identifier']
+            field_type, field_id = field['type'].split()
+            field['type'] = field_type.strip()
+            field['identifier'] = field_id.strip('"').strip()
+            field['function'] = field_function.strip()
+
         struct['fields'].append(field)
 
     if identifier == 'Object':
@@ -324,7 +343,7 @@ def parse_struct(struct_str, sortFields = True):
 
     return struct
 
-def parse_structs(extracted, sortFields = True):
+def parse_structs(extracted, sortFields = False):
     structs = []
     for e in extracted:
         for struct in e['structs']:
@@ -412,7 +431,7 @@ def output_fuzz_file():
     global fuzz_structs_calls
     with open(fuzz_from) as f:
         file_str = f.read()
-    with open(fuzz_to, 'w') as f:
+    with open(fuzz_to, 'w', encoding='utf-8', newline='\n') as f:
         f.write(file_str.replace('-- $[STRUCTS]', fuzz_structs).replace('-- $[FUZZ-STRUCTS]', fuzz_structs_calls))
 
 ############################################################################
@@ -460,9 +479,6 @@ def get_struct_field_info(struct, field):
     ftype = field['type']
     size = 1
 
-    if sid in override_field_names and fid in override_field_names[sid]:
-        fid = override_field_names[sid][fid]
-
     if sid in override_field_types and fid in override_field_types[sid]:
         ftype = override_field_types[sid][fid]
 
@@ -480,6 +496,9 @@ def get_struct_field_info(struct, field):
         if fid in override_field_mutable[sid] or '*' in override_field_mutable[sid]:
             fimmutable = 'false'
 
+    if ftype == cobject_function_identifier:
+        fimmutable = 'true'
+
     if not ('char' in ftype and '[' in ftype and 'unsigned' not in ftype):
         array_match = re.search(r'\[([^\]]+)\]', ftype)
         if array_match:
@@ -488,6 +507,8 @@ def get_struct_field_info(struct, field):
                 size = int(array_size)
             elif array_size.startswith("0x") and all(c in "0123456789abcdef" for c in array_size[2:]):
                 size = int(array_size, 16)
+            elif array_size != "":
+                size = array_size
             else:
                 lvt, lot = 'LVT_???', "LOT_???" # array size not provided, so not supported
 
@@ -502,6 +523,7 @@ def build_struct(struct):
 
     # build up table and track column width
     field_table = []
+    field_functions = []
     for field in struct['fields']:
         fid, ftype, fimmutable, lvt, lot, size = get_struct_field_info(struct, field)
 
@@ -527,22 +549,36 @@ def build_struct(struct):
             startStr += '#ifndef ' + override_field_version_excludes[fid] + '\n'
             endStr += '\n#endif'
         startStr += '    { '
-        row.append(startStr                                                       )
-        row.append('"%s", '               % fid                                   )
-        row.append('%s, '                 % lvt                                   )
-        row.append('offsetof(%s%s, %s), ' % (struct_str, name, field['identifier']))
-        row.append('%s, '                 % fimmutable                            )
-        row.append('%s, '                 % lot                                   )
-        row.append('%s, '                 % size                                  )
-        row.append('sizeof(%s)'           % ftype                                 )
-        row.append(endStr                                                         )
+        if ftype == cobject_function_identifier:
+            row.append(startStr                             )
+            row.append('"%s", '          % fid              )
+            row.append('%s, '            % lvt              )
+            row.append('(size_t) "%s", ' % field['function'])
+            row.append('%s, '            % fimmutable       )
+            row.append('%s, '            % lot              )
+            row.append('%s, '            % size             )
+            row.append('sizeof(const char *)'               )
+            row.append(endStr                               )
+            field_functions.append(field['function'])
+        else:
+            row.append(startStr                                                        )
+            row.append('"%s", '               % fid                                    )
+            row.append('%s, '                 % lvt                                    )
+            row.append('offsetof(%s%s, %s), ' % (struct_str, name, field['identifier']))
+            row.append('%s, '                 % fimmutable                             )
+            row.append('%s, '                 % lot                                    )
+            row.append('%s, '                 % size                                   )
+            row.append('sizeof(%s)'           % ftype                                  )
+            row.append(endStr                                                          )
         field_table.append(row)
 
     field_table_str, field_count = table_to_string(field_table)
     field_count_define = 'LUA_%s_FIELD_COUNT' % identifier_to_caps(sid)
     struct_lot = 'LOT_%s' % sid.upper()
 
-    s  = "#define %s $[STRUCTFIELDCOUNT]\n" % field_count_define
+    s = ''
+
+    s += "#define %s $[STRUCTFIELDCOUNT]\n" % field_count_define
     s += "static struct LuaObjectField s%sFields[%s] = {\n" % (sid, field_count_define)
     s += field_table_str
     s += '};\n'
@@ -574,7 +610,10 @@ def build_structs(structs):
     for struct in structs:
         if struct['identifier'] in exclude_structs:
             continue
+        oldFields = struct['fields']
+        struct['fields'] = sorted(struct['fields'], key=lambda d: d['identifier'])
         s += build_struct(struct) + '\n'
+        struct['fields'] = oldFields
     return s
 
 def build_body(parsed):
@@ -639,10 +678,27 @@ def build_includes():
 
 ############################################################################
 
+# HACK: Parse docs/functions.md to find the page where the function is documented
+function_links = {}
+
+def doc_find_function_link(function):
+    if not function_links:
+        with open('docs/lua/functions.md') as f:
+            lines = f.readlines()
+        for line in lines:
+            line = line.replace(' ', '').strip()
+            res, n = re.subn(r'^-\[(.*)\]\((.*)\)', '\\1,\\2', line)
+            if n != 0:
+                fname, flink = res.split(',')
+                function_links[fname] = flink
+    return function_links.get(function, '')
+
 def doc_struct_index(structs):
     s = '# Supported Structs\n'
     for struct in structs:
         sid = struct['identifier']
+        if sid in exclude_structs:
+            continue
         s += '- [%s](#%s)\n' % (sid, sid)
         global total_structs
         total_structs += 1
@@ -655,16 +711,20 @@ def doc_struct_field(struct, field):
     sid = struct['identifier']
     if sid in override_field_invisible:
         if fid in override_field_invisible[sid]:
-            return ''
+            return '', False
 
     if sid in override_field_deprecated:
         if fid in override_field_deprecated[sid]:
-            return ''
+            return '', False
 
     if '???' in lvt or '???' in lot:
-        return ''
+        return '', False
 
     ftype, flink = translate_type_to_lua(ftype)
+
+    if ftype == cobject_function_identifier:
+        flink = doc_find_function_link(field['function'])
+        return '| %s | [`%s`](%s) |\n' % (fid, field['function'], flink), True
 
     restrictions = ('', 'read-only')[fimmutable == 'true']
 
@@ -672,9 +732,9 @@ def doc_struct_field(struct, field):
     total_fields += 1
 
     if flink:
-        return '| %s | [%s](%s) | %s |\n'  % (fid, ftype, flink, restrictions)
+        return '| %s | [%s](%s) | %s |\n'  % (fid, ftype, flink, restrictions), False
 
-    return '| %s | %s | %s |\n'  % (fid, ftype, restrictions)
+    return '| %s | %s | %s |\n'  % (fid, ftype, restrictions), False
 
 
 def doc_struct_object_fields(struct):
@@ -689,7 +749,8 @@ def doc_struct_object_fields(struct):
             s += "| Field | Type | Access |\n"
             s += "| ----- | ---- | ------ |\n"
 
-        s += doc_struct_field(struct, field)
+        line, _ = doc_struct_field(struct, field)
+        s += line
 
     return s
 
@@ -700,16 +761,26 @@ def doc_struct(struct):
     s += "| Field | Type | Access |\n"
     s += "| ----- | ---- | ------ |\n"
 
-
     # build doc table
-    field_table = []
+    field_functions = ''
     for field in struct['fields']:
         if 'object_field' in field and field['object_field'] == True:
             continue
-        s += doc_struct_field(struct, field)
+        line, isFunction = doc_struct_field(struct, field)
+        if isFunction:
+            field_functions += line
+        else:
+            s += line
 
     if sid == 'Object':
         s += doc_struct_object_fields(struct)
+
+    # functions
+    if field_functions:
+        s += '\n**Functions:**\n\n'
+        s += "| Name | Reference |\n"
+        s += "| ---- | --------- |\n"
+        s += field_functions
 
     s += '\n[:arrow_up_small:](#)\n\n<br />\n'
 
@@ -726,12 +797,38 @@ def doc_structs(structs):
             continue
         s += doc_struct(struct) + '\n'
 
-    with open(get_path(out_filename_docs), 'w', newline='\n') as out:
+    with open(get_path(out_filename_docs), 'w', encoding='utf-8', newline='\n') as out:
         out.write(s)
 
 ############################################################################
 
 def_pointers = []
+
+# HACK: Parse autogen/lua_definitions/functions.lua to find the function signature
+function_signatures = {}
+
+def get_function_signature(function):
+    if not function_signatures:
+        with open('autogen/lua_definitions/functions.lua') as f:
+            lines = f.readlines()
+        function_params = []
+        function_return = None
+        for line in lines:
+            if line.startswith('--- @param'):
+                function_params.append(line.split()[2:4])
+            elif line.startswith('--- @return'):
+                function_return = line.split()[2]
+            elif line.startswith('function'):
+                sig = 'fun('
+                sig += ', '.join(['%s: %s' % (param_name, param_type) for param_name, param_type in function_params])
+                sig += ')'
+                if function_return:
+                    sig += ': %s' % (function_return)
+                function_name = line.replace('(', ' ').split()[1]
+                function_signatures[function_name] = sig
+                function_params.clear()
+                function_return = None
+    return function_signatures.get(function, 'function')
 
 def def_struct(struct):
     sid = struct['identifier']
@@ -754,7 +851,12 @@ def def_struct(struct):
 
         ftype, flink = translate_type_to_lua(ftype)
 
-        ftype = translate_to_def(ftype)
+        # try to get the function signature
+        if ftype == cobject_function_identifier:
+            ftype = get_function_signature(field['function'])
+        else:
+            ftype = translate_to_def(ftype)
+
         if ftype.startswith('Pointer_') and ftype not in def_pointers:
             def_pointers.append(ftype)
 
@@ -772,9 +874,9 @@ def def_structs(structs):
 
     s += '\n'
     for def_pointer in def_pointers:
-        s += '--- @class %s\n' % def_pointer
+        s += '--- @alias %s %s\n' % (def_pointer, def_pointer[8:])
 
-    with open(get_path(out_filename_defs), 'w', newline='\n') as out:
+    with open(get_path(out_filename_defs), 'w', encoding='utf-8', newline='\n') as out:
         out.write(s)
 
 ############################################################################
@@ -796,11 +898,11 @@ def build_files():
     built_include = build_includes()
 
     out_c_filename = get_path(out_filename_c)
-    with open(out_c_filename, 'w', newline='\n') as out:
+    with open(out_c_filename, 'w', encoding='utf-8', newline='\n') as out:
         out.write(c_template.replace("$[BODY]", built_body).replace('$[INCLUDES]', built_include))
 
     out_h_filename = get_path(out_filename_h)
-    with open(out_h_filename, 'w', newline='\n') as out:
+    with open(out_h_filename, 'w', encoding='utf-8', newline='\n') as out:
         out.write(h_template.replace("$[BODY]", built_enum))
 
     doc_structs(parsed)

@@ -48,6 +48,7 @@ struct LevelValues {
     u8 fixCollisionBugsGroundPoundBonks;
     u8 fixCollisionBugsPickBestWall;
     u8 fixVanishFloors;
+    u8 fixInvalidShellRides;
     u8 hudCapTimer;
     u8 hudRedCoinsRadar;
     u8 hudSecretsRadar;
@@ -81,6 +82,7 @@ struct LevelValues {
     enum SeqId wingCapSequence;
     enum SeqId metalCapSequence;
     enum SeqId vanishCapSequence;
+    enum SeqId shellSequence;
     struct StarPositions starPositions;
     s16 cellHeightLimit;
     s16 floorLowerLimit;
@@ -93,6 +95,9 @@ struct LevelValues {
     u8 useGlobalStarIds;
     u8 zoomOutCameraOnPause;
     u8 jrbDarkenSkybox;
+    f32 wallMaxRadius;
+    f32 floorNormalMinY;
+    f32 ceilNormalMaxY;
 };
 
 extern struct LevelValues gLevelValues;
@@ -260,6 +265,7 @@ struct BehaviorValues {
     u8  RespawnShellBoxes;
     u8  MultipleCapCollection;
     u8  InfiniteRenderDistance;
+    u8  ProcessLODs;
     s16 CourtyardBoosRequirement;
     struct StarsNeededForDialog starsNeededForDialog;
     struct BehaviorDialogs dialogs;

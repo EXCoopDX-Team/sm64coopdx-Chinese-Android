@@ -188,11 +188,19 @@ static void djui_panel_player_edit_palette_delete(UNUSED struct DjuiBase* caller
     // }
     player_palette_delete(fs_get_write_path(PALETTES_DIRECTORY), sPalettePresetNameTextBox->buffer, false);
     sReloadPalettePresetSelection = true;
+    djui_panel_menu_back(caller);
 }
 
 static void djui_panel_player_edit_palette_export(UNUSED struct DjuiBase* caller) {
     player_palette_export(sPalettePresetNameTextBox->buffer);
     sReloadPalettePresetSelection = true;
+}
+
+static void djui_panel_player_active_palette_export(UNUSED struct DjuiBase* caller) {
+    configPlayerPalette = gNetworkPlayers[0].overridePalette;
+    player_palette_export(sPalettePresetNameTextBox->buffer);
+    sReloadPalettePresetSelection = true;
+    djui_panel_menu_back(caller);
 }
 
 static void (*sSavedDestroy)(struct DjuiBase*);
@@ -202,6 +210,7 @@ static void djui_panel_player_edit_palette_destroy(struct DjuiBase* caller) {
     }
 
     sColorRect = NULL;
+    gDjuiPaletteToggle = NULL;
 
     if (sPalettePresetSelection) {
         sPalettePresetIndex = djui_panel_player_edit_palette_get_palette_index(configPlayerPalette);
@@ -272,12 +281,15 @@ static void djui_panel_player_edit_palette_create(struct DjuiBase* caller) {
 
         sSliderR = djui_slider_create(body, DLANG(PLAYER, RED), &sSliderChannels[0], 0, 255, djui_panel_player_edit_palette_red_changed);
         djui_base_set_color(&sSliderR->rectValue->base, 255, 0, 0, 255);
+        djui_base_set_gradient(&sSliderR->rectValue->base, false);
         sSliderR->updateRectValueColor = false;
         sSliderG = djui_slider_create(body, DLANG(PLAYER, GREEN), &sSliderChannels[1], 0, 255, djui_panel_player_edit_palette_green_changed);
         djui_base_set_color(&sSliderG->rectValue->base, 0, 255, 0, 255);
+        djui_base_set_gradient(&sSliderG->rectValue->base, false);
         sSliderG->updateRectValueColor = false;
         sSliderB = djui_slider_create(body, DLANG(PLAYER, BLUE), &sSliderChannels[2], 0, 255, djui_panel_player_edit_palette_blue_changed);
         djui_base_set_color(&sSliderB->rectValue->base, 0, 0, 255, 255);
+        djui_base_set_gradient(&sSliderB->rectValue->base, false);
         sSliderB->updateRectValueColor = false;
 
         struct DjuiRect* space = djui_rect_create(body);
@@ -291,6 +303,7 @@ static void djui_panel_player_edit_palette_create(struct DjuiBase* caller) {
         struct DjuiRect* rectValue = djui_rect_create(&space->base);
         djui_base_set_size_type(&rectValue->base, DJUI_SVT_RELATIVE, DJUI_SVT_RELATIVE);
         djui_base_set_color(&rectValue->base, sSliderChannels[0], sSliderChannels[1], sSliderChannels[2], 255);
+        djui_base_set_gradient(&rectValue->base, false);
         sColorRect = rectValue;
 
         struct DjuiRect* rect2 = djui_rect_container_create(body, 32);
@@ -342,6 +355,62 @@ static void djui_panel_player_edit_palette_create(struct DjuiBase* caller) {
 
     djui_panel_add(caller, panel, NULL);
 }
+
+static void djui_panel_player_name_active_palette(struct DjuiBase* caller) {
+    gDjuiInPlayerMenu = true;
+
+    struct DjuiThreePanel* panel = djui_panel_menu_create(DLANG(PLAYER, PALETTE), true);
+
+    // A bit of a gross hack to send out palette changes and update the palette preset selection box on unpause AND
+    // pressing the Back button
+    sSavedDestroy = panel->base.destroy;
+    panel->base.destroy = djui_panel_player_edit_palette_destroy;
+
+    struct DjuiBase* body = djui_three_panel_get_body(panel);
+
+    {
+        struct DjuiRect* rect2 = djui_rect_container_create(body, 32);
+        {
+            struct DjuiText* text1 = djui_text_create(&rect2->base, DLANG(PLAYER, PRESET_NAME));
+            djui_base_set_size_type(&text1->base, DJUI_SVT_RELATIVE, DJUI_SVT_ABSOLUTE);
+            djui_base_set_color(&text1->base, 220, 220, 220, 255);
+            djui_base_set_size(&text1->base, 0.585f, 64);
+            djui_base_set_alignment(&text1->base, DJUI_HALIGN_LEFT, DJUI_VALIGN_TOP);
+            djui_text_set_drop_shadow(text1, 64, 64, 64, 100);
+
+            sPalettePresetNameTextBox = djui_inputbox_create(&rect2->base, 32);
+            djui_inputbox_set_text(sPalettePresetNameTextBox, djui_panel_player_edit_palette_preset_name_get_text());
+            djui_base_set_size_type(&sPalettePresetNameTextBox->base, DJUI_SVT_RELATIVE, DJUI_SVT_ABSOLUTE);
+            djui_base_set_size(&sPalettePresetNameTextBox->base, 0.45f, 32);
+            djui_base_set_alignment(&sPalettePresetNameTextBox->base, DJUI_HALIGN_RIGHT, DJUI_VALIGN_TOP);
+            djui_interactable_hook_value_change(&sPalettePresetNameTextBox->base, djui_panel_player_edit_palette_preset_name_text_change);
+            djui_interactable_hook_focus(&sPalettePresetNameTextBox->base, djui_inputbox_on_focus_begin, NULL, djui_panel_player_edit_palette_preset_name_on_focus_end);
+        }
+
+        struct DjuiRect* rect3 = djui_rect_container_create(body, 32);
+        {
+            struct DjuiButton* button1 = djui_button_left_create(&rect3->base, DLANG(MENU, CANCEL), DJUI_BUTTON_STYLE_NORMAL, djui_panel_menu_back);
+            djui_base_set_size(&button1->base, 0.485f, 32);
+            struct DjuiButton* button2 = djui_button_right_create(&rect3->base, DLANG(PLAYER, SAVE_PRESET), DJUI_BUTTON_STYLE_NORMAL, djui_panel_player_active_palette_export);
+            djui_base_set_size(&button2->base, 0.485f, 32);
+        }
+
+        {
+#ifdef TOUCH_CONTROLS
+            struct DjuiButton *text = djui_button_create(body, DLANG(PLAYER, CAP_TOGGLE_TOUCH), DJUI_BUTTON_STYLE_NORMAL, djui_panel_player_on_toggle_wear_cap);
+#else
+            struct DjuiText *text = djui_text_create(body, DLANG(PLAYER, CAP_TOGGLE));
+            djui_text_set_alignment(text, DJUI_HALIGN_CENTER, DJUI_VALIGN_TOP);
+#endif
+            djui_base_set_size_type(&text->base, DJUI_SVT_RELATIVE, DJUI_SVT_ABSOLUTE);
+            djui_base_set_size(&text->base, 1.0f, 64);
+            gDjuiPaletteToggle = text;
+        }
+    }
+
+    djui_panel_add(caller, panel, NULL);
+}
+
 
 
   //////////////////
@@ -480,6 +549,7 @@ void djui_panel_player_create(struct DjuiBase* caller) {
         sPalettePresetSelection = djui_selectionbox_create(body, DLANG(PLAYER, PALETTE_PRESET), palettePresets, gPresetPaletteCount + 1, &sPalettePresetIndex, djui_panel_player_update_preset_palette);
 
         djui_button_create(body, DLANG(PLAYER, EDIT_PALETTE), DJUI_BUTTON_STYLE_NORMAL, djui_panel_player_edit_palette_create);
+        djui_button_create(body, DLANG(PLAYER, ACTIVE_PALETTE), DJUI_BUTTON_STYLE_NORMAL, djui_panel_player_name_active_palette);
 #ifndef TOUCH_CONTROLS
         djui_button_create(body, DLANG(MENU, BACK), DJUI_BUTTON_STYLE_BACK, djui_panel_menu_back);
 #endif
@@ -502,5 +572,6 @@ void djui_panel_player_create(struct DjuiBase* caller) {
     }
 
     struct DjuiPanel* p = djui_panel_add(caller, panel, NULL);
+    if (!p) { return; }
     p->on_panel_destroy = djui_panel_player_destroy;
 }

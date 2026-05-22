@@ -29,7 +29,7 @@
 #include "rumble_init.h"
 #include "obj_behaviors.h"
 #include "hardcoded.h"
-#include "../../include/libc/stdlib.h"
+#include "libc/stdlib.h"
 #include "pc/debuglog.h"
 #include "pc/pc_main.h"
 #include "pc/configfile.h"
@@ -238,7 +238,7 @@ s32 geo_switch_peach_eyes(s32 run, struct GraphNode *node, UNUSED s32 a2) {
 
 // unused
 static void stub_is_textbox_active(u16 *a0) {
-    if (get_dialog_id() == -1) {
+    if (get_dialog_id() == DIALOG_NONE) {
         *a0 = 0;
     }
 }
@@ -257,7 +257,7 @@ s32 get_star_collection_dialog(struct MarioState *m) {
     if (!m) { return 0; }
     s32 dialogID = 0;
 
-    if (smlua_call_event_hooks_ret_int(HOOK_GET_STAR_COLLECTION_DIALOG, &dialogID)) {
+    if (smlua_call_event_hooks(HOOK_GET_STAR_COLLECTION_DIALOG, &dialogID)) {
         m->prevNumStarsForDialog = m->numStars;
         return dialogID;
     }
@@ -370,7 +370,6 @@ void cutscene_put_cap_on(struct MarioState *m) {
     m->flags &= ~MARIO_CAP_IN_HAND;
     m->flags |= MARIO_CAP_ON_HEAD;
     play_sound(SOUND_ACTION_UNKNOWN43E, m->marioObj->header.gfx.cameraToObject);
-    m->cap = 0;
 }
 
 /**
@@ -576,7 +575,7 @@ s32 act_reading_automatic_dialog(struct MarioState *m) {
                 }
             }
         } else if (m->actionState == 10) { // wait until dialog is done
-            if ((m->playerIndex == 0 && get_dialog_id() >= 0) ||
+            if ((m->playerIndex == 0 && get_dialog_id() != DIALOG_NONE) ||
                 (m->playerIndex != 0 && m->dialogId != 0)) {
                 m->actionState--;
             }
@@ -694,12 +693,10 @@ s32 act_debug_free_move(struct MarioState *m) {
 
     struct Surface *surf = NULL;
     f32 floorHeight = find_floor(pos[0], pos[1], pos[2], &surf);
-    if (surf != NULL) {
-        if (pos[1] < floorHeight) {
-            pos[1] = floorHeight;
-        }
-        vec3f_copy(m->pos, pos);
+    if (pos[1] < floorHeight) {
+        pos[1] = floorHeight;
     }
+    vec3f_copy(m->pos, pos);
 
     m->faceAngle[1] = m->intendedYaw;
     vec3f_copy(m->marioObj->header.gfx.pos, m->pos);
@@ -849,7 +846,7 @@ s32 common_death_handler(struct MarioState *m, s32 animation, s32 frameToDeathWa
             // do nothing
         } else {
             bool allowDeath = true;
-            smlua_call_event_hooks_mario_param_ret_bool(HOOK_ON_DEATH, m, &allowDeath);
+            smlua_call_event_hooks(HOOK_ON_DEATH, m, &allowDeath);
             if (!allowDeath) { return animFrame; }
 
             if (mario_can_bubble(m)) {
@@ -923,7 +920,7 @@ s32 act_quicksand_death(struct MarioState *m) {
             } else {
                 m->actionState = 2;
                 bool allowDeath = true;
-                smlua_call_event_hooks_mario_param_ret_bool(HOOK_ON_DEATH, m, &allowDeath);
+                smlua_call_event_hooks(HOOK_ON_DEATH, m, &allowDeath);
                 if (!allowDeath) { return FALSE; }
 
                 if (mario_can_bubble(m)) {
@@ -943,13 +940,11 @@ s32 act_eaten_by_bubba(struct MarioState *m) {
     if (!m) { return 0; }
     play_character_sound_if_no_flag(m, CHAR_SOUND_DYING, MARIO_ACTION_SOUND_PLAYED);
     set_character_animation(m, CHAR_ANIM_A_POSE);
-
+    m->marioObj->header.gfx.node.flags &= ~GRAPH_RENDER_ACTIVE;
     if (m->actionTimer++ == 60) {
-        if (m->playerIndex != 0) {
-            // do nothing
-        } else {
+        if (m->playerIndex == 0) {
             bool allowDeath = true;
-            smlua_call_event_hooks_mario_param_ret_bool(HOOK_ON_DEATH, m, &allowDeath);
+            smlua_call_event_hooks(HOOK_ON_DEATH, m, &allowDeath);
             if (!allowDeath) { return FALSE; }
 
             if (mario_can_bubble(m)) {
@@ -1876,7 +1871,7 @@ s32 act_squished(struct MarioState *m) {
             m->health = 0x100;
         } else {
             bool allowDeath = true;
-            smlua_call_event_hooks_mario_param_ret_bool(HOOK_ON_DEATH, m, &allowDeath);
+            smlua_call_event_hooks(HOOK_ON_DEATH, m, &allowDeath);
             if (!allowDeath) { return FALSE; }
 
             if (mario_can_bubble(m)) {
@@ -1899,13 +1894,12 @@ s32 act_squished(struct MarioState *m) {
 s32 act_putting_on_cap(struct MarioState *m) {
     s32 animFrame = set_character_animation(m, CHAR_ANIM_PUT_CAP_ON);
 
-    if (animFrame == 0 && !gCamera->paletteEditorCap) {
+    if (animFrame == 0) {
         enable_time_stop_if_alone();
     }
 
     if (animFrame == 28) {
         cutscene_put_cap_on(m);
-        gCamera->paletteEditorCap = false;
     }
 
     if (is_anim_at_end(m)) {
@@ -1917,35 +1911,10 @@ s32 act_putting_on_cap(struct MarioState *m) {
     return FALSE;
 }
 
-// coop custom action
-// actionArg == 1: the action was inited from CUTSCENE_PALETTE_EDITOR
-s32 act_taking_off_cap(struct MarioState *m) {
-    s16 animFrame = set_character_animation(m, CHAR_ANIM_TAKE_CAP_OFF_THEN_ON);
-    switch (animFrame) {
-        case 0:
-            if (m->actionArg != 1) {
-                enable_time_stop_if_alone();
-            }
-            break;
-        case 12:
-            cutscene_take_cap_off(m);
-            if (m->actionArg == 1) { gCamera->paletteEditorCap = true; }
-            break;
-    }
-    if (animFrame >= 30 || gCamera->cutscene != CUTSCENE_PALETTE_EDITOR) {
-        set_mario_action(m, ACT_IDLE, 0);
-        disable_time_stop();
-    }
-
-    stationary_ground_step(m);
-    return FALSE;
-}
-
 /* |description|
 Handles the cutscene and animation sequence for when Mario is stuck in the ground (head, butt, or feet). Plays a designated `animation`, checks specific frames (`unstuckFrame`, `target2`, `target3`) for sound effects or transitions, and frees Mario to the `endAction` once the animation completes
 |descriptionEnd| */
-void stuck_in_ground_handler(struct MarioState *m, s32 animation, s32 unstuckFrame, s32 target2,
-                             s32 target3, s32 endAction) {
+void stuck_in_ground_handler(struct MarioState *m, s32 animation, s32 unstuckFrame, s32 target2, s32 target3, s32 endAction) {
     if (!m) { return; }
     s32 animFrame = set_character_animation(m, animation);
 
@@ -2248,7 +2217,7 @@ static s32 jumbo_star_cutscene_taking_off(struct MarioState *m) {
 
     if (m->actionState == 0) {
         set_character_animation(m, CHAR_ANIM_FINAL_BOWSER_RAISE_HAND_SPIN);
-        marioObj->rawData.asF32[0x22] = 0.0f;
+        marioObj->oMarioJumboStarCutscenePosZ = 0.0f;
 
         if (is_anim_past_end(m)) {
             play_mario_landing_sound(m, SOUND_ACTION_TERRAIN_LANDING);
@@ -2260,7 +2229,7 @@ static s32 jumbo_star_cutscene_taking_off(struct MarioState *m) {
             play_sound_and_spawn_particles(m, SOUND_ACTION_TERRAIN_JUMP, 1);
         }
         if (animFrame >= 3) {
-            marioObj->rawData.asF32[0x22] -= 32.0f;
+            marioObj->oMarioJumboStarCutscenePosZ -= 32.0f;
         }
 
         switch (animFrame) {
@@ -2283,7 +2252,7 @@ static s32 jumbo_star_cutscene_taking_off(struct MarioState *m) {
         }
     }
 
-    vec3f_set(m->pos, 0.0f, 307.0, marioObj->rawData.asF32[0x22]);
+    vec3f_set(m->pos, 0.0f, 307.0, marioObj->oMarioJumboStarCutscenePosZ);
     m->pos[0] += 100.0f * m->playerIndex;
 
     update_mario_pos_for_anim(m);
@@ -3004,6 +2973,10 @@ static s32 act_end_peach_cutscene(struct MarioState *m) {
     m->actionTimer++;
 
     if (m->playerIndex == 0) {
+        if (m->controller->buttonPressed & START_BUTTON) {
+            lvl_skip_credits();
+        }
+
         sEndCutsceneVp.vp.vscale[0] = 640;
         sEndCutsceneVp.vp.vscale[1] = 360;
         sEndCutsceneVp.vp.vtrans[0] = 640;
@@ -3049,6 +3022,10 @@ static s32 act_credits_cutscene(struct MarioState *m) {
         if (m->actionTimer > 0) {
             stop_and_set_height_to_floor(m);
         }
+    }
+
+    if (m->playerIndex == 0 && m->controller->buttonPressed & START_BUTTON) {
+        lvl_skip_credits();
     }
 
     if (m->actionTimer >= TIMER_CREDITS_SHOW) {
@@ -3210,11 +3187,10 @@ s32 mario_execute_cutscene_action(struct MarioState *m) {
             case ACT_BUTT_STUCK_IN_GROUND:       cancel = act_butt_stuck_in_ground(m);       break;
             case ACT_FEET_STUCK_IN_GROUND:       cancel = act_feet_stuck_in_ground(m);       break;
             case ACT_PUTTING_ON_CAP:             cancel = act_putting_on_cap(m);             break;
-            case ACT_TAKING_OFF_CAP:             cancel = act_taking_off_cap(m);             break;
             default:
-                LOG_ERROR("Attempted to execute unimplemented action '%04X'", m->action);
+                LOG_ERROR("Attempted to execute unimplemented action '%08X'", m->action);
                 set_mario_action(m, ACT_IDLE, 0);
-                return false;
+                return FALSE;
         }
         /* clang-format on */
     }

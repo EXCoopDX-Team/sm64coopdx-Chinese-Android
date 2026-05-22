@@ -8,6 +8,7 @@
 #include "pc/controller/controller_sdl.h"
 #include "pc/controller/controller_mouse.h"
 #include "pc/controller/controller_keyboard.h"
+#include "pc/controller/controller_touchscreen.h"
 #include "pc/utils/misc.h"
 #include "pc/network/network.h"
 
@@ -198,12 +199,6 @@ bool djui_interactable_on_key_down(int scancode) {
         return true;
     }
 
-    if (!gDjuiChatBoxFocus) {
-        for (int i = 0; i < MAX_BINDS; i++) {
-            if (scancode == (int)configKeyConsole[i]) { djui_console_toggle(); break; }
-        }
-    }
-
     bool keyFocused = (gInteractableFocus != NULL)
                    && (gInteractableFocus->interactable != NULL)
                    && (gInteractableFocus->interactable->on_key_down != NULL);
@@ -217,7 +212,11 @@ bool djui_interactable_on_key_down(int scancode) {
         }
     }
 
+#ifdef TOUCH_CONTROLS
+    if ((scancode == SCANCODE_ESCAPE || scancode == SCANCODE_BACK) && djui_panel_is_active()) {
+#else
     if (scancode == SCANCODE_ESCAPE && djui_panel_is_active()) {
+#endif
         // pressed escape button on keyboard
         djui_panel_back();
         return true;
@@ -285,9 +284,11 @@ bool djui_interactable_on_key_down(int scancode) {
 
 void djui_interactable_on_key_up(int scancode) {
 
-    bool keyFocused = (gInteractableFocus != NULL)
-                   && (gInteractableFocus->interactable != NULL)
-                   && (gInteractableFocus->interactable->on_key_up != NULL);
+    if (!gDjuiChatBoxFocus) {
+        for (int i = 0; i < MAX_BINDS; i++) {
+            if (scancode == (int)configKeyConsole[i]) { djui_console_toggle(); break; }
+        }
+    }
 
     if (gDjuiPlayerList != NULL || gDjuiModList != NULL) {
         for (int i = 0; i < MAX_BINDS; i++) {
@@ -303,6 +304,10 @@ void djui_interactable_on_key_up(int scancode) {
             }
         }
     }
+
+    bool keyFocused = (gInteractableFocus != NULL)
+                   && (gInteractableFocus->interactable != NULL)
+                   && (gInteractableFocus->interactable->on_key_up != NULL);
 
     if (keyFocused) {
         gInteractableFocus->interactable->on_key_up(gInteractableFocus, scancode);
@@ -333,6 +338,13 @@ void djui_interactable_on_text_editing(char* text, int cursorPos) {
     if (gInteractableFocus->interactable == NULL) { return; }
     if (gInteractableFocus->interactable->on_text_editing == NULL) { return; }
     gInteractableFocus->interactable->on_text_editing(gInteractableFocus, text, cursorPos);
+}
+
+void djui_interactable_on_scroll(float x, float y) {
+    if (gInteractableFocus == NULL) { return; }
+    if (gInteractableFocus->interactable == NULL) { return; }
+    if (gInteractableFocus->interactable->on_scroll == NULL) { return; }
+    gInteractableFocus->interactable->on_scroll(gInteractableFocus, x, y);
 }
 
 void djui_interactable_update_pad(void) {
@@ -415,7 +427,7 @@ void djui_interactable_update(void) {
     // update focused
     if (gInteractableFocus) {
         u16 mainButtons = PAD_BUTTON_A | PAD_BUTTON_B;
-        if ((mouseButtons & MOUSE_BUTTON_1) && !(sLastMouseButtons && MOUSE_BUTTON_1) && !djui_cursor_inside_base(gInteractableFocus)) {
+        if ((mouseButtons & MOUSE_BUTTON_1) && !(sLastMouseButtons & MOUSE_BUTTON_1) && !djui_cursor_inside_base(gInteractableFocus)) {
             // clicked outside of focus
             if (!gDjuiChatBoxFocus) {
                 djui_interactable_set_input_focus(NULL);
@@ -431,6 +443,10 @@ void djui_interactable_update(void) {
     } else if ((padButtons & PAD_BUTTON_B) && !(sLastInteractablePad.button & PAD_BUTTON_B)) {
         // pressed back button on controller
         djui_panel_back();
+
+        sLastInteractablePad = gInteractablePad;
+        sLastMouseButtons = mouseButtons;
+        return;
     } else if ((padButtons & PAD_BUTTON_START) && !(sLastInteractablePad.button & PAD_BUTTON_START)) {
         // pressed start button
         if (gDjuiPanelPauseCreated) { djui_panel_shutdown(); }
@@ -440,10 +456,10 @@ void djui_interactable_update(void) {
         djui_interactable_on_bind(gInteractableBinding);
     } else if ((padButtons & PAD_BUTTON_A) || (mouseButtons & MOUSE_BUTTON_1)) {
         // cursor down events
-        #ifdef TOUCH_CONTROLS
+#ifdef TOUCH_CONTROLS
         if (gInteractableMouseDown == NULL)
             djui_interactable_cursor_update_active(&gDjuiRoot->base);
-        #endif
+#endif
         if (gDjuiHovered != NULL) {
             gInteractableMouseDown = gDjuiHovered;
             gDjuiHovered = NULL;
@@ -490,9 +506,9 @@ void djui_interactable_hook_cursor_down(struct DjuiBase* base,
 }
 
 void djui_interactable_hook_focus(struct DjuiBase* base,
-                                        void (*on_focus_begin)(struct DjuiBase*),
-                                        void (*on_focus)(struct DjuiBase*, OSContPad*),
-                                        void (*on_focus_end)(struct DjuiBase*)) {
+                                  void (*on_focus_begin)(struct DjuiBase*),
+                                  void (*on_focus)(struct DjuiBase*, OSContPad*),
+                                  void (*on_focus_end)(struct DjuiBase*)) {
     struct DjuiInteractable* interactable = base->interactable;
     // on Android, if I don't make this change, the onscreen keyboard
     // does not automatically appear when the Player Name box is
@@ -524,8 +540,8 @@ void djui_interactable_hook_bind(struct DjuiBase* base,
 }
 
 void djui_interactable_hook_key(struct DjuiBase* base,
-                                 bool (*on_key_down)(struct DjuiBase*, int),
-                                 void (*on_key_up)(struct DjuiBase*, int)) {
+                                bool (*on_key_down)(struct DjuiBase*, int),
+                                void (*on_key_up)(struct DjuiBase*, int)) {
     struct DjuiInteractable *interactable = base->interactable;
     interactable->on_key_down = on_key_down;
     interactable->on_key_up   = on_key_up;
@@ -539,9 +555,15 @@ void djui_interactable_hook_text_input(struct DjuiBase *base,
 }
 
 void djui_interactable_hook_text_editing(struct DjuiBase* base,
-                                       void (*on_text_editing)(struct DjuiBase*, char*, int)) {
+                                        void (*on_text_editing)(struct DjuiBase*, char*, int)) {
     struct DjuiInteractable *interactable = base->interactable;
     interactable->on_text_editing = on_text_editing;
+}
+
+void djui_interactable_hook_scroll(struct DjuiBase* base,
+                                   void (*on_scroll)(struct DjuiBase*, float, float)) {
+    struct DjuiInteractable *interactable = base->interactable;
+    interactable->on_scroll = on_scroll;
 }
 
 void djui_interactable_hook_enabled_change(struct DjuiBase *base,

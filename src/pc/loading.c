@@ -48,7 +48,7 @@ static bool loading_screen_on_render(struct DjuiBase* base) {
     MUTEX_LOCK(gLoadingThread);
 
     u32 windowWidth, windowHeight;
-    WAPI.get_dimensions(&windowWidth, &windowHeight);
+    gfx_get_dimensions(&windowWidth, &windowHeight);
     f32 scale = djui_gfx_get_scale();
     windowWidth /= scale;
     windowHeight /= scale;
@@ -121,7 +121,7 @@ static void init_loading_screen(void) {
 
     // splash image
     } else {
-        struct DjuiImage* splashImage = djui_image_create(base, texture_coopdx_logo, 2048, 1024, 32);
+        struct DjuiImage* splashImage = djui_image_create(base, texture_coopdx_logo, 2048, 1024, G_IM_FMT_RGBA, G_IM_SIZ_32b);
         djui_base_set_location_type(&splashImage->base, DJUI_SVT_RELATIVE, DJUI_SVT_ABSOLUTE);
         djui_base_set_alignment(&splashImage->base, DJUI_HALIGN_CENTER, DJUI_VALIGN_TOP);
         djui_base_set_location(&splashImage->base, 0, -100);

@@ -110,6 +110,7 @@ bool network_init(enum NetworkType inNetworkType, bool reconnecting) {
     // reset override hide hud
     extern u8 gOverrideHideHud;
     gOverrideHideHud = 0;
+    act_select_hud_show(ACT_SELECT_HUD_ALL);
     gNetworkStartupTimer = 5 * 30;
 
     // sanity check network system
@@ -138,6 +139,8 @@ bool network_init(enum NetworkType inNetworkType, bool reconnecting) {
 
     gNametagsSettings.showHealth = false;
     gNametagsSettings.showSelfTag = false;
+
+    gPauseMenuHidden = false;
 
     // initialize the network system
     gNetworkSentJoin = false;
@@ -183,6 +186,8 @@ bool network_init(enum NetworkType inNetworkType, bool reconnecting) {
         discord_activity_update();
     }
 #endif
+
+    djui_base_set_visible(&gDjuiModReload->base, network_allow_mod_dev_mode());
 
     LOG_INFO("initialized");
 
@@ -637,6 +642,33 @@ static inline void color_set(Color color, u8 r, u8 g, u8 b) {
     color[2] = b;
 }
 
+bool network_allow_mod_dev_mode(void) {
+    return (configModDevMode && gNetworkSystem == &gNetworkSystemSocket && gNetworkType == NT_SERVER);
+}
+
+void network_mod_dev_mode_reload(void) {
+    network_rehost_begin();
+
+    for (int i = 0; i < gLocalMods.entryCount; i++) {
+        struct Mod* mod = gLocalMods.entries[i];
+        if (mod->enabled) {
+            mod_refresh_files(mod);
+        }
+    }
+
+    djui_lua_error_clear();
+
+    LOG_CONSOLE(" ");
+    LOG_CONSOLE("===================================================");
+    LOG_CONSOLE("===================================================");
+    LOG_CONSOLE("===================================================");
+    LOG_CONSOLE("===================== REFRESH =====================");
+    LOG_CONSOLE("===================================================");
+    LOG_CONSOLE("===================================================");
+    LOG_CONSOLE("===================================================");
+}
+
+
 void network_shutdown(bool sendLeaving, bool exiting, bool popup, bool reconnecting) {
     smlua_call_event_hooks(HOOK_ON_EXIT);
 
@@ -665,9 +697,9 @@ void network_shutdown(bool sendLeaving, bool exiting, bool popup, bool reconnect
         gNetworkType = NT_NONE;
     }
 
-    dynos_model_clear_pool(MODEL_POOL_SESSION);
-
     if (exiting) { return; }
+
+    dynos_model_clear_pool(MODEL_POOL_SESSION);
 
     // reset other stuff
     extern u8* gOverrideEeprom;
@@ -678,6 +710,7 @@ void network_shutdown(bool sendLeaving, bool exiting, bool popup, bool reconnect
     gOverrideNear = 0;
     gOverrideFar = 0;
     gOverrideFOV = 0;
+    gRoomOverride = -1;
     gCurrActStarNum = 0;
     gCurrActNum = 0;
     gCurrCreditsEntry = NULL;
@@ -703,7 +736,6 @@ void network_shutdown(bool sendLeaving, bool exiting, bool popup, bool reconnect
     extern s16 gChangeLevel;
     gChangeLevel = LEVEL_CASTLE_GROUNDS;
     network_player_init();
-    camera_set_use_course_specific_settings(true);
     gMarioStates[0].cap = 0;
     gMarioStates[0].input = 0;
     extern s16 gTTCSpeedSetting;

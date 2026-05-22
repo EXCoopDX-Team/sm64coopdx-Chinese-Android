@@ -17,8 +17,6 @@ Vec3f gFindWallDirection = { 0 };
 u8 gFindWallDirectionActive = false;
 u8 gFindWallDirectionAirborne = false;
 
-#define CLAMP(_val, _min, _max) MAX(MIN((_val), _max), _min)
-
 void set_find_wall_direction(Vec3f dir, bool active, bool airborne) {
     if (active) {
         vec3f_copy(gFindWallDirection, dir);
@@ -27,7 +25,7 @@ void set_find_wall_direction(Vec3f dir, bool active, bool airborne) {
     gFindWallDirectionAirborne = airborne;
 }
 
-static void closest_point_to_triangle(struct Surface* surf, Vec3f src, Vec3f out) {
+void closest_point_to_triangle(struct Surface* surf, Vec3f src, VEC_OUT Vec3f out) {
     Vec3f v1; vec3s_to_vec3f(v1, surf->vertex1);
     Vec3f v2; vec3s_to_vec3f(v2, surf->vertex2);
     Vec3f v3; vec3s_to_vec3f(v3, surf->vertex3);
@@ -50,18 +48,18 @@ static void closest_point_to_triangle(struct Surface* surf, Vec3f src, Vec3f out
         if (s < 0) {
             if (t < 0) {
                 if (d < 0) {
-                    s = CLAMP(-d/a, 0, 1);
+                    s = clamp(-d/a, 0, 1);
                     t = 0;
                 } else {
                     s = 0;
-                    t = CLAMP(-e/c, 0, 1);
+                    t = clamp(-e/c, 0, 1);
                 }
             } else {
                 s = 0;
-                t = CLAMP(-e/c, 0, 1);
+                t = clamp(-e/c, 0, 1);
             }
         } else if (t < 0) {
-            s = CLAMP(-d/a, 0, 1);
+            s = clamp(-d/a, 0, 1);
             t = 0;
         } else {
             f32 invDet = 1 / det;
@@ -75,26 +73,26 @@ static void closest_point_to_triangle(struct Surface* surf, Vec3f src, Vec3f out
             if (tmp1 > tmp0) {
                 f32 numer = tmp1 - tmp0;
                 f32 denom = a-2*b+c;
-                s = CLAMP(numer/denom, 0, 1);
+                s = clamp(numer/denom, 0, 1);
                 t = (1 - s);
             } else {
-                t = CLAMP(-e/c, 0, 1);
+                t = clamp(-e/c, 0, 1);
                 s = 0;
             }
         } else if (t < 0.f) {
             if ((a + d) > (b + e)) {
                 f32 numer = c+e-b-d;
                 f32 denom = a-2*b+c;
-                s = CLAMP(numer/denom, 0, 1);
+                s = clamp(numer/denom, 0, 1);
                 t = (1 - s);
             } else {
-                s = CLAMP(-e/c, 0, 1);
+                s = clamp(-e/c, 0, 1);
                 t = 0;
             }
         } else {
             f32 numer = c+e-b-d;
             f32 denom = a-2*b+c;
-            s = CLAMP(numer/denom, 0, 1);
+            s = clamp(numer/denom, 0, 1);
             t = 1 - s;
         }
     }
@@ -128,9 +126,9 @@ static s32 find_wall_collisions_from_list(struct SurfaceNode *surfaceNode,
     Vec3f cPos = { 0 };
     Vec3f cNorm = { 0 };
 
-    // Max collision radius = 200
-    if (radius > 200.0f) {
-        radius = 200.0f;
+    // Default max collision radius = 200
+    if (radius > gLevelValues.wallMaxRadius) {
+        radius = gLevelValues.wallMaxRadius;
     }
 
     // Stay in this loop until out of walls.
@@ -139,9 +137,8 @@ static s32 find_wall_collisions_from_list(struct SurfaceNode *surfaceNode,
         surfaceNode = surfaceNode->next;
 
         // Exclude a large number of walls immediately to optimize.
-        if (y < surf->lowerY || y > surf->upperY) {
-            continue;
-        }
+        if (y < surf->lowerY || y > surf->upperY) { continue; }
+        if (surf->flags & SURFACE_FLAG_INTANGIBLE) { continue; }
 
         if (gLevelValues.fixCollisionBugs && gLevelValues.fixCollisionBugsRoundedCorners && !gFindWallDirectionAirborne) {
             // Check AABB to exclude walls before doing expensive triangle check
@@ -165,7 +162,7 @@ static s32 find_wall_collisions_from_list(struct SurfaceNode *surfaceNode,
             closest_point_to_triangle(surf, src, cPos);
 
             // Exclude triangles where y isn't inside of it
-            if (fabs(cPos[1] - y) > 1) { continue; }
+            if (cPos[1] < surf->lowerY || cPos[1] > surf->upperY) { continue; }
 
             // Figure out normal
             f32 dX = src[0] - cPos[0];
@@ -401,6 +398,8 @@ static struct Surface *find_ceil_from_list(struct SurfaceNode *surfaceNode, s32 
         surf = surfaceNode->surface;
         surfaceNode = surfaceNode->next;
 
+        if (surf->flags & SURFACE_FLAG_INTANGIBLE) { continue; }
+
         x1 = surf->vertex1[0];
         z1 = surf->vertex1[2];
         z2 = surf->vertex2[2];
@@ -498,7 +497,7 @@ static struct Surface *find_ceil_from_list(struct SurfaceNode *surfaceNode, s32 
 /**
  * Find the lowest ceiling above a given position and return the height.
  */
-f32 find_ceil(f32 posX, f32 posY, f32 posZ, struct Surface **pceil) {
+f32 find_ceil(f32 posX, f32 posY, f32 posZ, RET struct Surface **pceil) {
     s16 cellZ, cellX;
     struct Surface *ceil, *dynamicCeil;
     struct SurfaceNode *surfaceList;
@@ -624,7 +623,8 @@ static struct Surface *find_floor_from_list(struct SurfaceNode *surfaceNode, s32
         if (surf == NULL) { break; }
         surfaceNode = surfaceNode->next;
         interpolate = gInterpolatingSurfaces;
-
+        
+        if (surf->flags & SURFACE_FLAG_INTANGIBLE) { continue; }
         if (gCheckingSurfaceCollisionsForObject != NULL) {
             if (surf->object != gCheckingSurfaceCollisionsForObject) {
                 continue;
@@ -812,7 +812,7 @@ f32 unused_find_dynamic_floor(f32 xPos, f32 yPos, f32 zPos, struct Surface **pfl
 /**
  * Find the highest floor under a given position and return the height.
  */
-f32 find_floor(f32 xPos, f32 yPos, f32 zPos, struct Surface **pfloor) {
+f32 find_floor(f32 xPos, f32 yPos, f32 zPos, RET struct Surface **pfloor) {
     s16 cellZ, cellX;
 
     struct Surface *floor, *dynamicFloor;

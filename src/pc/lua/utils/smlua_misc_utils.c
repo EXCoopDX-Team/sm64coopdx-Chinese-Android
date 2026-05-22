@@ -3,10 +3,12 @@
 #include "types.h"
 
 #include "data/dynos.c.h"
+#include "engine/math_util.h"
 #include "game/bettercamera.h"
 #include "game/camera.h"
 #include "game/hardcoded.h"
 #include "game/hud.h"
+#include "menu/star_select.h"
 #include "pc/lua/smlua.h"
 #include "smlua_misc_utils.h"
 #include "pc/debuglog.h"
@@ -26,7 +28,8 @@
 #include "include/course_table.h"
 #include "game/level_geo.h"
 #include "game/first_person_cam.h"
-#include "pc/lua/utils/smlua_math_utils.h"
+#include "game/rumble_init.h"
+#include "game/sound_init.h"
 #include "pc/lua/utils/smlua_audio_utils.h"
 
 #ifdef DISCORD_SDK
@@ -47,6 +50,22 @@ u32 get_network_area_timer(void) {
 
 u16 get_area_update_counter(void) {
     return gAreaUpdateCounter;
+}
+
+///
+
+s32* get_temp_s32_pointer(s32 initialValue) {
+    static s32 value = 0;
+    value = initialValue;
+    return &value;
+}
+
+s32 deref_s32_pointer(s32* pointer) {
+    if (pointer == NULL) {
+        LOG_LUA_LINE("Tried to dereference null pointer!");
+        return 0;
+    }
+    return *pointer;
 }
 
 ///
@@ -88,6 +107,15 @@ bool djui_attempting_to_open_playerlist(void) {
     return gAttemptingToOpenPlayerlist;
 }
 
+u8 djui_get_playerlist_page_index(void) {
+    extern u8 sPageIndex;
+    return sPageIndex;
+}
+
+bool djui_is_chatbox_open(void) {
+    return gDjuiChatBox->chatInput->base.visible;
+}
+
 enum DjuiFontType djui_menu_get_font(void) {
     return configDjuiThemeFont == 0 ? FONT_NORMAL : FONT_ALIASED;
 }
@@ -96,9 +124,12 @@ struct DjuiTheme* djui_menu_get_theme(void) {
     return gDjuiThemes[configDjuiTheme];
 }
 
+bool djui_is_playerlist_ping_visible(void) {
+    return configShowPing;
+}
+
 ///
 
-extern s8 gDialogBoxState;
 s8 get_dialog_box_state(void) {
     return gDialogBoxState;
 }
@@ -191,6 +222,18 @@ void hud_set_value(enum HudDisplayValue type, s32 value) {
     }
 }
 
+void act_select_hud_hide(enum ActSelectHudPart part) {
+    gOverrideHideActSelectHud |= part;
+}
+
+void act_select_hud_show(enum ActSelectHudPart part) {
+    gOverrideHideActSelectHud &= ~part;
+}
+
+bool act_select_hud_is_hidden(enum ActSelectHudPart part) {
+    return (gOverrideHideActSelectHud & part) != 0;
+}
+
 extern const u8 texture_power_meter_left_side[];
 extern const u8 texture_power_meter_right_side[];
 extern const u8 texture_power_meter_full[];
@@ -202,19 +245,20 @@ extern const u8 texture_power_meter_three_segments[];
 extern const u8 texture_power_meter_two_segments[];
 extern const u8 texture_power_meter_one_segments[];
 
+static struct TextureInfo sPowerMeterTexturesInfo[] = {
+    { .texture = texture_power_meter_left_side,      .name = "texture_power_meter_left_side",      .width = 32, .height = 64, .format = G_IM_FMT_RGBA, .size = G_IM_SIZ_16b },
+    { .texture = texture_power_meter_right_side,     .name = "texture_power_meter_right_side",     .width = 32, .height = 64, .format = G_IM_FMT_RGBA, .size = G_IM_SIZ_16b },
+    { .texture = texture_power_meter_one_segments,   .name = "texture_power_meter_one_segments",   .width = 32, .height = 32, .format = G_IM_FMT_RGBA, .size = G_IM_SIZ_16b },
+    { .texture = texture_power_meter_two_segments,   .name = "texture_power_meter_two_segments",   .width = 32, .height = 32, .format = G_IM_FMT_RGBA, .size = G_IM_SIZ_16b },
+    { .texture = texture_power_meter_three_segments, .name = "texture_power_meter_three_segments", .width = 32, .height = 32, .format = G_IM_FMT_RGBA, .size = G_IM_SIZ_16b },
+    { .texture = texture_power_meter_four_segments,  .name = "texture_power_meter_four_segments",  .width = 32, .height = 32, .format = G_IM_FMT_RGBA, .size = G_IM_SIZ_16b },
+    { .texture = texture_power_meter_five_segments,  .name = "texture_power_meter_five_segments",  .width = 32, .height = 32, .format = G_IM_FMT_RGBA, .size = G_IM_SIZ_16b },
+    { .texture = texture_power_meter_six_segments,   .name = "texture_power_meter_six_segments",   .width = 32, .height = 32, .format = G_IM_FMT_RGBA, .size = G_IM_SIZ_16b },
+    { .texture = texture_power_meter_seven_segments, .name = "texture_power_meter_seven_segments", .width = 32, .height = 32, .format = G_IM_FMT_RGBA, .size = G_IM_SIZ_16b },
+    { .texture = texture_power_meter_full,           .name = "texture_power_meter_full",           .width = 32, .height = 32, .format = G_IM_FMT_RGBA, .size = G_IM_SIZ_16b },
+};
+
 void hud_render_power_meter(s32 health, f32 x, f32 y, f32 width, f32 height) {
-    static struct TextureInfo sPowerMeterTexturesInfo[] = {
-        { (u8*)texture_power_meter_left_side,      8, 32, 64, "texture_power_meter_left_side"      },
-        { (u8*)texture_power_meter_right_side,     8, 32, 64, "texture_power_meter_right_side"     },
-        { (u8*)texture_power_meter_one_segments,   8, 32, 32, "texture_power_meter_one_segments"   },
-        { (u8*)texture_power_meter_two_segments,   8, 32, 32, "texture_power_meter_two_segments"   },
-        { (u8*)texture_power_meter_three_segments, 8, 32, 32, "texture_power_meter_three_segments" },
-        { (u8*)texture_power_meter_four_segments,  8, 32, 32, "texture_power_meter_four_segments"  },
-        { (u8*)texture_power_meter_five_segments,  8, 32, 32, "texture_power_meter_five_segments"  },
-        { (u8*)texture_power_meter_six_segments,   8, 32, 32, "texture_power_meter_six_segments"   },
-        { (u8*)texture_power_meter_seven_segments, 8, 32, 32, "texture_power_meter_seven_segments" },
-        { (u8*)texture_power_meter_full,           8, 32, 32, "texture_power_meter_full"           },
-    };
     djui_hud_render_texture(&sPowerMeterTexturesInfo[0], x, y, width / 64, height / 64);
     djui_hud_render_texture(&sPowerMeterTexturesInfo[1], x + (width - 2) / 2, y, width / 64, height / 64);
     s32 numWedges = MIN(MAX(health >> 8, 0), 8);
@@ -224,19 +268,6 @@ void hud_render_power_meter(s32 health, f32 x, f32 y, f32 width, f32 height) {
 }
 
 void hud_render_power_meter_interpolated(s32 health, f32 prevX, f32 prevY, f32 prevWidth, f32 prevHeight, f32 x, f32 y, f32 width, f32 height) {
-    static struct TextureInfo sPowerMeterTexturesInfo[] = {
-        { (u8*)texture_power_meter_left_side,      8, 32, 64, "texture_power_meter_left_side"      },
-        { (u8*)texture_power_meter_right_side,     8, 32, 64, "texture_power_meter_right_side"     },
-        { (u8*)texture_power_meter_one_segments,   8, 32, 32, "texture_power_meter_one_segments"   },
-        { (u8*)texture_power_meter_two_segments,   8, 32, 32, "texture_power_meter_two_segments"   },
-        { (u8*)texture_power_meter_three_segments, 8, 32, 32, "texture_power_meter_three_segments" },
-        { (u8*)texture_power_meter_four_segments,  8, 32, 32, "texture_power_meter_four_segments"  },
-        { (u8*)texture_power_meter_five_segments,  8, 32, 32, "texture_power_meter_five_segments"  },
-        { (u8*)texture_power_meter_six_segments,   8, 32, 32, "texture_power_meter_six_segments"   },
-        { (u8*)texture_power_meter_seven_segments, 8, 32, 32, "texture_power_meter_seven_segments" },
-        { (u8*)texture_power_meter_full,           8, 32, 32, "texture_power_meter_full"           },
-    };
-
     djui_hud_render_texture_interpolated(&sPowerMeterTexturesInfo[0],
         prevX, prevY, prevWidth / 64, prevHeight / 64,
         x,     y,     width     / 64, height     / 64);
@@ -263,9 +294,34 @@ void hud_set_flash(s8 value) {
 
 ///
 
-extern s16 gMenuMode;
 bool is_game_paused(void) {
     return gMenuMode != -1;
+}
+
+bool is_pause_menu_hidden(void) {
+    return gPauseMenuHidden;
+}
+
+void set_pause_menu_hidden(bool hidden) {
+    gPauseMenuHidden = hidden;
+}
+
+void game_pause(void) {
+    if (gMenuMode != -1) { return; }
+
+    lower_background_noise(1);
+    cancel_rumble();
+    gCameraMovementFlags |= CAM_MOVE_PAUSE_SCREEN;
+    set_play_mode(PLAY_MODE_PAUSED);
+}
+
+void game_unpause(void) {
+    if (gMenuMode == -1) { return; }
+
+    level_set_transition(0, NULL);
+    gMenuMode = -1;
+    gDialogBoxState = 0;
+    gPauseScreenMode = 1;
 }
 
 ///
@@ -288,22 +344,43 @@ u32 allocate_mario_action(u32 actFlags) {
 
 ///
 
+static const u32 sHandFootToAnimParts[] = {
+    [0] = MARIO_ANIM_PART_RIGHT_HAND,
+    [1] = MARIO_ANIM_PART_LEFT_HAND,
+    [2] = MARIO_ANIM_PART_RIGHT_FOOT,
+    [3] = MARIO_ANIM_PART_LEFT_FOOT,
+};
+
 f32 get_hand_foot_pos_x(struct MarioState* m, u8 index) {
     if (!m) { return 0; }
     if (index >= 4) { index = 0; }
-    return m->marioBodyState->handFootPos[index][0];
+    return m->marioBodyState->animPartsPos[sHandFootToAnimParts[index]][0];
 }
 
 f32 get_hand_foot_pos_y(struct MarioState* m, u8 index) {
     if (!m) { return 0; }
     if (index >= 4) { index = 0; }
-    return m->marioBodyState->handFootPos[index][1];
+    return m->marioBodyState->animPartsPos[sHandFootToAnimParts[index]][1];
 }
 
 f32 get_hand_foot_pos_z(struct MarioState* m, u8 index) {
     if (!m) { return 0; }
     if (index >= 4) { index = 0; }
-    return m->marioBodyState->handFootPos[index][2];
+    return m->marioBodyState->animPartsPos[sHandFootToAnimParts[index]][2];
+}
+
+bool get_mario_anim_part_pos(struct MarioState *m, u32 animPart, VEC_OUT Vec3f pos) {
+    if (!m) { return false; }
+    if (animPart >= MARIO_ANIM_PART_MAX) { return false; }
+    vec3f_copy(pos, m->marioBodyState->animPartsPos[animPart]);
+    return true;
+}
+
+bool get_mario_anim_part_rot(struct MarioState *m, u32 animPart, VEC_OUT Vec3s rot) {
+    if (!m) { return false; }
+    if (animPart >= MARIO_ANIM_PART_MAX) { return false; }
+    vec3s_copy(rot, m->marioBodyState->animPartsRot[animPart]);
+    return true;
 }
 
 ///
@@ -479,16 +556,16 @@ void set_volume_env(f32 volume) {
 
 ///
 
-f32 get_environment_region(u8 index) {
-    s32 idx = 6 * index;
+s16 get_environment_region(u8 index) {
+    u8 idx = 6 * index;
     if (gEnvironmentRegions != NULL && index > 0 && index <= gEnvironmentRegions[0] && gEnvironmentRegionsLength > idx) {
         return gEnvironmentRegions[idx];
     }
     return gLevelValues.floorLowerLimit;
 }
 
-void set_environment_region(u8 index, s32 value) {
-    s32 idx = 6 * index;
+void set_environment_region(u8 index, s16 value) {
+    u8 idx = 6 * index;
     if (gEnvironmentRegions != NULL && index > 0 && index <= gEnvironmentRegions[0] && gEnvironmentRegionsLength > idx) {
         gEnvironmentRegions[idx] = value;
     }
@@ -499,9 +576,20 @@ void set_environment_region(u8 index, s32 value) {
 bool mod_file_exists(const char* filename) {
     if (gLuaActiveMod == NULL) { return false; }
 
+    char normPath[SYS_MAX_PATH] = { 0 };
+    char normRelative[SYS_MAX_PATH] = { 0 };
+
+    if (snprintf(normPath, sizeof(normPath), "%s", filename) < 0) {
+        LOG_ERROR("Failed to copy filename for normalization: %s", filename);
+    }
+
+    normalize_path(normPath);
+
     for (s32 i = 0; i < gLuaActiveMod->fileCount; i++) {
         struct ModFile* file = &gLuaActiveMod->files[i];
-        if (!strcmp(file->relativePath, filename)) {
+        strcpy(normRelative, file->relativePath);
+        normalize_path(normRelative);
+        if (!strcmp(normRelative, normPath)) {
             return true;
         }
     }
@@ -516,13 +604,13 @@ struct Mod* get_active_mod(void) {
 ///
 
 void set_window_title(const char* title) {
-#ifndef TARGET_ANDROID
+#ifndef __ANDROID__
     WAPI.set_window_title(title);
 #endif
 }
 
 void reset_window_title(void) {
-#ifndef TARGET_ANDROID
+#ifndef __ANDROID__
     WAPI.reset_window_title();
 #endif
 }
@@ -545,4 +633,73 @@ const char* get_os_name(void) {
 #else
     return "Unknown";
 #endif
+}
+
+///
+
+struct GraphNodeRoot* geo_get_current_root(void) {
+    return gCurGraphNodeRoot;
+}
+
+struct GraphNodeMasterList* geo_get_current_master_list(void) {
+    return gCurGraphNodeMasterList;
+}
+
+struct GraphNodePerspective* geo_get_current_perspective(void) {
+    return gCurGraphNodeCamFrustum;
+}
+
+struct GraphNodeCamera* geo_get_current_camera(void) {
+    return gCurGraphNodeCamera;
+}
+
+struct GraphNodeHeldObject* geo_get_current_held_object(void) {
+    return gCurGraphNodeHeldObject;
+}
+
+LuaTable texture_to_lua_table(const Texture *tex) {
+    lua_State *L = gLuaState;
+    if (!L) { return 0; }
+
+    if (!tex) {
+        lua_pushnil(L);
+        return 0;
+    }
+
+    struct TextureInfo texInfo;
+    if (!dynos_texture_get_from_data(tex, &texInfo)) {
+        lua_pushnil(L);
+        return 0;
+    }
+
+    u8 *rgba = dynos_texture_convert_to_rgba32(texInfo.texture, texInfo.width, texInfo.height, texInfo.format, texInfo.size);
+    if (!rgba) {
+        lua_pushnil(L);
+        return 0;
+    }
+
+    LUA_STACK_CHECK_BEGIN_NUM(L, 1);
+
+    lua_newtable(L);
+    const u8 *pixel = rgba;
+    for (u32 i = 0; i < texInfo.width * texInfo.height; ++i, pixel += 4) {
+        lua_newtable(L);
+        smlua_push_integer_field(-2, "r", pixel[0]);
+        smlua_push_integer_field(-2, "g", pixel[1]);
+        smlua_push_integer_field(-2, "b", pixel[2]);
+        smlua_push_integer_field(-2, "a", pixel[3]);
+        lua_rawseti(L, -2, i + 1);
+    }
+    free(rgba);
+
+    LUA_STACK_CHECK_END(L);
+    return smlua_to_lua_table(L, -1);
+}
+
+const char *get_texture_name(const Texture *tex) {
+    struct TextureInfo texInfo;
+    if (dynos_texture_get_from_data(tex, &texInfo)) {
+        return texInfo.name;
+    }
+    return NULL;
 }

@@ -27,16 +27,20 @@ public:
 
     void* get(int64_t key) {
         switch (mMapType) {
-            case MapType::Ordered:
-                if (mOrderedMap->count(key)) {
-                    return mOrderedMap->at(key);
+            case MapType::Ordered: {
+                auto it = mOrderedMap->find(key);
+                if (it != mOrderedMap->end()) {
+                    return it->second;
                 }
                 break;
-            case MapType::Unordered:
-                if (mUnorderedMap->count(key)) {
-                    return mUnorderedMap->at(key);
+            }
+            case MapType::Unordered: {
+                auto it = mUnorderedMap->find(key);
+                if (it != mUnorderedMap->end()) {
+                    return it->second;
                 }
                 break;
+            }
         }
         return nullptr;
     }
@@ -131,8 +135,8 @@ private:
 };
 
 extern "C" {
-void* hmap_create(MapType type) {
-    return new HMap(type);
+void* hmap_create(bool useUnordered) {
+    return new HMap(useUnordered ? MapType::Unordered : MapType::Ordered);
 }
 
 void* hmap_get(void* map, int64_t key) {

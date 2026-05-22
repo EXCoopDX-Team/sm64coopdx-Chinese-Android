@@ -264,7 +264,7 @@ end
 
 --- @param reliable boolean Whether or not the game should try to resend the packet in case its lost, good for important packets
 --- @param dataTable table<string, number|boolean|string|nil> Table of values to be included in the packet
---- Sends a global Lua packet with the values of `dataTable`
+--- Sends a global Lua packet with the values of `dataTable`. Received with the `HOOK_ON_PACKET_RECEIVE` hook.
 function network_send(reliable, dataTable)
     -- ...
 end
@@ -272,8 +272,23 @@ end
 --- @param toLocalIndex integer The local index to send the packet to
 --- @param reliable boolean Whether or not the game should try to resend the packet in case its lost, good for important packets
 --- @param dataTable table Table of values to be included in the packet
---- Sends a Lua packet with the values of `dataTable` to a specific client through local indices
+--- Sends a Lua packet with the values of `dataTable` to a specific client through local indices. Received with the `HOOK_ON_PACKET_RECEIVE` hook.
 function network_send_to(toLocalIndex, reliable, dataTable)
+    -- ...
+end
+
+--- @param reliable boolean Whether or not the game should try to resend the packet in case its lost, good for important packets
+--- @param bytestring string The bytestring to be included in the packet
+--- Sends a global Lua packet with the bytestring of `bytestring`. Received with the `HOOK_ON_PACKET_BYTESTRING_RECEIVE` hook.
+function network_send_bytestring(reliable, bytestring)
+    -- ...
+end
+
+--- @param toLocalIndex integer The local index to send the packet to
+--- @param reliable boolean Whether or not the game should try to resend the packet in case its lost, good for important packets
+--- @param bytestring string The bytestring to be included in the packet
+--- Sends a Lua packet with the bytestring of `bytestring` to a specific client through local indices. Received with the `HOOK_ON_PACKET_BYTESTRING_RECEIVE` hook.
+function network_send_bytestring_to(toLocalIndex, reliable, bytestring)
     -- ...
 end
 
@@ -282,62 +297,6 @@ end
 --- Gets the `TextureInfo` of a texture by name
 --- - Note: This also works with vanilla textures
 function get_texture_info(textureName)
-    -- ...
-end
-
---- @param texInfo TextureInfo The texture
---- @param x number Where the texture is horizontally (left anchored)
---- @param y number Where the texture is vertically (top anchored)
---- @param scaleW number The scaled width of the texture
---- @param scaleH number The scaled height of the texture
---- Renders a texture to the screen
-function djui_hud_render_texture(texInfo, x, y, scaleW, scaleH)
-    -- ...
-end
-
---- @param texInfo TextureInfo The texture
---- @param x number Where the texture is horizontally (left anchored)
---- @param y number Where the texture is vertically (top anchored)
---- @param scaleW number The scaled width of the texture
---- @param scaleH number The scaled height of the texture
---- @param tileX number Where the tile is horizontally (left anchored)
---- @param tileY number Where the tile is vertically (top anchored)
---- @param tileW number The width of the tile
---- @param tileH number The height of the tile
---- Renders a tile of a texture to the screen
-function djui_hud_render_texture_tile(texInfo, x, y, scaleW, scaleH, tileX, tileY, tileW, tileH)
-    -- ...
-end
-
---- @param texInfo TextureInfo The texture
---- @param prevX number Where the texture previously was horizontally (left anchored)
---- @param prevY number Where the texture previously was vertically (top anchored)
---- @param prevScaleW number The previous scaled width of the texture
---- @param prevScaleH number The previous scaled height of the texture
---- @param x number Where the texture is horizontally (left anchored)
---- @param y number Where the texture is vertically (top anchored)
---- @param scaleW number The scaled width of the texture
---- @param scaleH number The scaled height of the texture
---- Renders an interpolated texture to the screen
-function djui_hud_render_texture_interpolated(texInfo, prevX, prevY, prevScaleW, prevScaleH, x, y, scaleW, scaleH)
-    -- ...
-end
-
---- @param texInfo TextureInfo The texture
---- @param prevX number Where the texture previously was horizontally (left anchored)
---- @param prevY number Where the texture previously was vertically (top anchored)
---- @param prevScaleW number The previous scaled width of the texture
---- @param prevScaleH number The previous scaled height of the texture
---- @param x number Where the texture is horizontally (left anchored)
---- @param y number Where the texture is vertically (top anchored)
---- @param scaleW number The scaled width of the texture
---- @param scaleH number The scaled height of the texture
---- @param tileX number Where the tile is horizontally (left anchored)
---- @param tileY number Where the tile is vertically (top anchored)
---- @param tileW number The width of the tile
---- @param tileH number The height of the tile
---- Renders an interpolated tile of a texture to the screen
-function djui_hud_render_texture_tile_interpolated(texInfo, prevX, prevY, prevScaleW, prevScaleH, x, y, scaleW, scaleH, tileX, tileY, tileW, tileH)
     -- ...
 end
 
@@ -435,7 +394,7 @@ function get_exclamation_box_contents()
 end
 
 --- @param node GraphNode | FnGraphNode
---- @return GraphNode | GraphNodeAnimatedPart | GraphNodeBackground | GraphNodeBillboard | GraphNodeCamera | GraphNodeCullingRadius | GraphNodeDisplayList | GraphNodeGenerated | GraphNodeHeldObject | GraphNodeLevelOfDetail | GraphNodeMasterList | GraphNodeObject | GraphNodeObjectParent | GraphNodeOrthoProjection | GraphNodePerspective | GraphNodeRotation | GraphNodeScale | GraphNodeShadow | GraphNodeStart | GraphNodeSwitchCase | GraphNodeTranslation | GraphNodeTranslationRotation
+--- @return GraphNode | GraphNodeAnimatedPart | GraphNodeBackground | GraphNodeBillboard | GraphNodeCamera | GraphNodeCullingRadius | GraphNodeDisplayList | GraphNodeGenerated | GraphNodeHeldObject | GraphNodeLevelOfDetail | GraphNodeMasterList | GraphNodeObject | GraphNodeObjectParent | GraphNodeOrthoProjection | GraphNodePerspective | GraphNodeRotation | GraphNodeScale | GraphNodeShadow | GraphNodeStart | GraphNodeSwitchCase | GraphNodeTranslation | GraphNodeTranslationRotation | GraphNodeBone
 --- Returns the specific GraphNode(...) the node is part of.
 --- Basically the reverse of `.node` or `.fnNode`
 function cast_graph_node(node)
@@ -451,8 +410,39 @@ end
 
 --- @param gfx Gfx
 --- @param command string
---- @vararg integer Parameters for the command
---- Sets the specified display list command on the display list given
+--- @vararg integer | string | Gfx | Texture | Vtx Parameters for the command
+--- Sets a display list command on the display list given.
+--- 
+--- If `command` includes parameter specifiers (subsequences beginning with `%`), the additional arguments
+--- following `command` are converted and inserted in `command` replacing their respective specifiers.
+--- 
+--- The number of provided parameters must be equal to the number of specifiers in `command`,
+--- and the order of parameters must be the same as the specifiers.
+--- 
+--- The following specifiers are allowed:
+--- - `%i` for an `integer` parameter
+--- - `%s` for a `string` parameter
+--- - `%v` for a `Vtx` parameter
+--- - `%t` for a `Texture` parameter
+--- - `%g` for a `Gfx` parameter
 function gfx_set_command(gfx, command, ...)
+    -- ...
+end
+
+--- @param name string
+--- @return Pointer_Gfx
+--- @return integer
+--- Gets a display list of the current mod from its name.
+--- Returns a pointer to the display list and its length
+function gfx_get_from_name(name)
+    -- ...
+end
+
+--- @param name string
+--- @return Pointer_Vtx
+--- @return integer
+--- Gets a vertex buffer of the current mod from its name.
+--- Returns a pointer to the vertex buffering and its vertex count
+function vtx_get_from_name(name)
     -- ...
 end

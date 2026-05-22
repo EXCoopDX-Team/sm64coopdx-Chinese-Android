@@ -40,6 +40,7 @@
 #include "pc/controller/controller_keyboard.h"
 #ifdef TOUCH_CONTROLS
 #include "pc/controller/controller_touchscreen.h"
+#include "pc/djui/djui_interactable.h"
 #endif
 #include "pc/controller/controller_sdl.h"
 #include "pc/controller/controller_bind_mapping.h"
@@ -57,9 +58,6 @@
 #else
 # define FRAMERATE 30
 #endif
-// time between consequtive game frames
-static const f64 sFrameTime = 1.0 / ((double)FRAMERATE);
-static f64 sFrameTargetTime = 0;
 
 static SDL_Window *wnd;
 static SDL_GLContext ctx = NULL;
@@ -74,6 +72,8 @@ static void (*touch_down_callback)(void* event);
 static void (*touch_motion_callback)(void* event);
 static void (*touch_up_callback)(void* event);
 #endif
+
+static void (*m_scroll)(float, float) = NULL;
 
 #define IS_FULLSCREEN() ((SDL_GetWindowFlags(wnd) & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0)
 
@@ -134,7 +134,7 @@ static void gfx_sdl_init(const char *window_title) {
     SDL_StartTextInput();
 #endif
 
-#ifdef TARGET_ANDROID
+#ifdef __ANDROID__
     SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
 #endif
 
@@ -149,7 +149,7 @@ static void gfx_sdl_init(const char *window_title) {
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
 #ifdef USE_GLES
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);  // These attributes allow for hardware acceleration on RPis.
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 #endif
@@ -201,6 +201,11 @@ static void gfx_sdl_onkeydown(int scancode) {
 static void gfx_sdl_onkeyup(int scancode) {
     if (kb_key_up)
         kb_key_up(translate_sdl_scancode(scancode));
+}
+
+static void gfx_sdl_onscroll(float x, float y) {
+    if (m_scroll)
+        m_scroll(x, y);
 }
 
 static void gfx_sdl_ondropfile(char* path) {
@@ -281,6 +286,9 @@ static void gfx_sdl_handle_events(void) {
                 gfx_sdl_fingerup(event.tfinger);
                 break;
 #endif
+            case SDL_MOUSEWHEEL:
+                gfx_sdl_onscroll(event.wheel.preciseX, event.wheel.preciseY);
+                break;
             case SDL_WINDOWEVENT:
                 if (!IS_FULLSCREEN()) {
                     switch (event.window.event) {
@@ -324,12 +332,15 @@ void (*on_all_keys_up)(void), void (*on_text_input)(char*), void (*on_text_editi
 }
 
 #ifdef TOUCH_CONTROLS
-void gfx_sdl_set_touchscreen_callbacks(void (*down)(void* event), void (*motion)(void* event), void (*up)(void* event)) {
+static void gfx_sdl_set_touchscreen_callbacks(void (*down)(void* event), void (*motion)(void* event), void (*up)(void* event)) {
     touch_down_callback = down;
     touch_motion_callback = motion;
     touch_up_callback = up;
 }
 #endif
+static void gfx_sdl_set_scroll_callback(void (*on_scroll)(float, float)) {
+    m_scroll = on_scroll;
+}
 
 static bool gfx_sdl_start_frame(void) {
     return true;
@@ -400,6 +411,7 @@ struct GfxWindowManagerAPI gfx_sdl = {
 #ifdef TOUCH_CONTROLS
     gfx_sdl_set_touchscreen_callbacks,
 #endif
+    gfx_sdl_set_scroll_callback,
     gfx_sdl_main_loop,
     gfx_sdl_get_dimensions,
     gfx_sdl_handle_events,

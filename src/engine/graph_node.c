@@ -11,15 +11,6 @@
 #include "include/geo_commands.h"
 #include "pc/debuglog.h"
 
-// unused Mtx(s)
-s16 identityMtx[4][4] = { { 1, 0, 0, 0 }, { 0, 1, 0, 0 }, { 0, 0, 1, 0 }, { 0, 0, 0, 1 } };
-s16 zeroMtx[4][4] = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
-
-Vec3f gVec3fZero = { 0.0f, 0.0f, 0.0f };
-Vec3s gVec3sZero = { 0, 0, 0 };
-Vec3f gVec3fOne = { 1.0f, 1.0f, 1.0f };
-UNUSED Vec3s gVec3sOne = { 1, 1, 1 };
-
 /**
  * Initialize a geo node with a given type. Sets all links such that there
  * are no siblings, parent or children for this node.
@@ -34,8 +25,10 @@ void init_scene_graph_node_links(struct GraphNode *graphNode, s32 type) {
     graphNode->children = NULL;
     graphNode->georef = NULL;
     graphNode->hookProcess = 0;
+#ifdef DEBUG
     graphNode->_guard1 = GRAPH_NODE_GUARD;
     graphNode->_guard2 = GRAPH_NODE_GUARD;
+#endif
 }
 
 /**
@@ -169,7 +162,7 @@ struct GraphNodeLevelOfDetail *init_graph_node_render_range(struct DynamicPool *
  */
 struct GraphNodeSwitchCase *init_graph_node_switch_case(struct DynamicPool *pool,
                                                         struct GraphNodeSwitchCase *graphNode,
-                                                        s16 numCases, s16 selectedCase,
+                                                        s16 parameter, s16 selectedCase,
                                                         GraphNodeFunc nodeFunc, s32 unused) {
     if (pool != NULL) {
         graphNode = dynamic_pool_alloc(pool, sizeof(struct GraphNodeSwitchCase));
@@ -177,7 +170,7 @@ struct GraphNodeSwitchCase *init_graph_node_switch_case(struct DynamicPool *pool
 
     if (graphNode != NULL) {
         init_scene_graph_node_links(&graphNode->fnNode.node, GRAPH_NODE_TYPE_SWITCH_CASE);
-        graphNode->numCases = numCases;
+        graphNode->parameter = parameter;
         graphNode->selectedCase = selectedCase;
         graphNode->fnNode.func = nodeFunc;
         graphNode->unused = unused;
@@ -235,7 +228,7 @@ init_graph_node_translation_rotation(struct DynamicPool *pool,
         vec3s_copy(graphNode->translation, translation);
         vec3s_copy(graphNode->rotation, rotation);
         graphNode->node.flags = (drawingLayer << 8) | (graphNode->node.flags & 0xFF);
-        graphNode->displayList = dynos_model_duplicate_displaylist(displayList);
+        graphNode->displayList = dynos_gfx_get_writable_display_list(displayList);
     }
 
     return graphNode;
@@ -257,7 +250,7 @@ struct GraphNodeTranslation *init_graph_node_translation(struct DynamicPool *poo
 
         vec3s_copy(graphNode->translation, translation);
         graphNode->node.flags = (drawingLayer << 8) | (graphNode->node.flags & 0xFF);
-        graphNode->displayList = dynos_model_duplicate_displaylist(displayList);
+        graphNode->displayList = dynos_gfx_get_writable_display_list(displayList);
     }
 
     return graphNode;
@@ -278,7 +271,7 @@ struct GraphNodeRotation *init_graph_node_rotation(struct DynamicPool *pool,
         init_scene_graph_node_links(&graphNode->node, GRAPH_NODE_TYPE_ROTATION);
         vec3s_copy(graphNode->rotation, rotation);
         graphNode->node.flags = (drawingLayer << 8) | (graphNode->node.flags & 0xFF);
-        graphNode->displayList = dynos_model_duplicate_displaylist(displayList);
+        graphNode->displayList = dynos_gfx_get_writable_display_list(displayList);
     }
 
     return graphNode;
@@ -298,8 +291,27 @@ struct GraphNodeScale *init_graph_node_scale(struct DynamicPool *pool,
         init_scene_graph_node_links(&graphNode->node, GRAPH_NODE_TYPE_SCALE);
         graphNode->node.flags = (drawingLayer << 8) | (graphNode->node.flags & 0xFF);
         graphNode->scale = scale;
-        graphNode->prevScale = scale;
-        graphNode->displayList = dynos_model_duplicate_displaylist(displayList);
+        graphNode->displayList = dynos_gfx_get_writable_display_list(displayList);
+    }
+
+    return graphNode;
+}
+
+/**
+ * Allocates and returns a newly created XYZ scaling node
+ */
+struct GraphNodeScaleXYZ *init_graph_node_scale_xyz(struct DynamicPool *pool,
+                                                    struct GraphNodeScaleXYZ *graphNode, s32 drawingLayer,
+                                                    void *displayList, Vec3f scale) {
+    if (pool != NULL) {
+        graphNode = dynamic_pool_alloc(pool, sizeof(struct GraphNodeScaleXYZ));
+    }
+
+    if (graphNode != NULL) {
+        init_scene_graph_node_links(&graphNode->node, GRAPH_NODE_TYPE_SCALE_XYZ);
+        graphNode->node.flags = (drawingLayer << 8) | (graphNode->node.flags & 0xFF);
+        vec3f_copy(graphNode->scale, scale);
+        graphNode->displayList = dynos_gfx_get_writable_display_list(displayList);
     }
 
     return graphNode;
@@ -369,7 +381,7 @@ struct GraphNodeAnimatedPart *init_graph_node_animated_part(struct DynamicPool *
         init_scene_graph_node_links(&graphNode->node, GRAPH_NODE_TYPE_ANIMATED_PART);
         vec3s_copy(graphNode->translation, translation);
         graphNode->node.flags = (drawingLayer << 8) | (graphNode->node.flags & 0xFF);
-        graphNode->displayList = dynos_model_duplicate_displaylist(displayList);
+        graphNode->displayList = dynos_gfx_get_writable_display_list(displayList);
     }
 
     return graphNode;
@@ -390,7 +402,7 @@ struct GraphNodeBillboard *init_graph_node_billboard(struct DynamicPool *pool,
         init_scene_graph_node_links(&graphNode->node, GRAPH_NODE_TYPE_BILLBOARD);
         vec3s_copy(graphNode->translation, translation);
         graphNode->node.flags = (drawingLayer << 8) | (graphNode->node.flags & 0xFF);
-        graphNode->displayList = dynos_model_duplicate_displaylist(displayList);
+        graphNode->displayList = dynos_gfx_get_writable_display_list(displayList);
     }
 
     return graphNode;
@@ -409,7 +421,7 @@ struct GraphNodeDisplayList *init_graph_node_display_list(struct DynamicPool *po
     if (graphNode != NULL) {
         init_scene_graph_node_links(&graphNode->node, GRAPH_NODE_TYPE_DISPLAY_LIST);
         graphNode->node.flags = (drawingLayer << 8) | (graphNode->node.flags & 0xFF);
-        graphNode->displayList = dynos_model_duplicate_displaylist(displayList);
+        graphNode->displayList = dynos_gfx_get_writable_display_list(displayList);
     }
 
     return graphNode;
@@ -534,6 +546,30 @@ struct GraphNodeHeldObject *init_graph_node_held_object(struct DynamicPool *pool
         if (nodeFunc != NULL) {
             nodeFunc(GEO_CONTEXT_CREATE, &graphNode->fnNode.node, pool);
         }
+    }
+
+    return graphNode;
+}
+
+/**
+ * Allocates and returns a newly created bone node with initial rotation/translation
+ */
+struct GraphNodeBone *init_graph_node_bone(struct DynamicPool *pool,
+                                           struct GraphNodeBone *graphNode,
+                                           s32 drawingLayer, void *displayList,
+                                           Vec3s translation, Vec3s rotation,
+                                           Vec3f scale) {
+    if (pool != NULL) {
+        graphNode = dynamic_pool_alloc(pool, sizeof(struct GraphNodeBone));
+    }
+
+    if (graphNode != NULL) {
+        init_scene_graph_node_links(&graphNode->node, GRAPH_NODE_TYPE_BONE);
+        vec3s_copy(graphNode->translation, translation);
+        vec3s_copy(graphNode->rotation, rotation);
+        vec3f_copy(graphNode->scale, scale);
+        graphNode->node.flags = (drawingLayer << 8) | (graphNode->node.flags & 0xFF);
+        graphNode->displayList = dynos_gfx_get_writable_display_list(displayList);
     }
 
     return graphNode;
@@ -798,7 +834,7 @@ void geo_obj_init_animation(struct GraphNodeObject *graphNode, const struct Anim
 
     if (graphNode->animInfo.curAnim != anim) {
         graphNode->animInfo.curAnim = (struct Animation*)anim;
-        graphNode->animInfo.animFrame = anim->startFrame + ((anim->flags & ANIM_FLAG_FORWARD) ? 1 : -1);
+        graphNode->animInfo.animFrame = anim->startFrame + ((anim->flags & ANIM_FLAG_BACKWARD) ? 1 : -1);
         graphNode->animInfo.animAccel = 0;
         graphNode->animInfo.animYTrans = 0;
     }
@@ -815,7 +851,7 @@ void geo_obj_init_animation_accel(struct GraphNodeObject *graphNode, const struc
         graphNode->animInfo.curAnim = (struct Animation*)anim;
         graphNode->animInfo.animYTrans = 0;
         graphNode->animInfo.animFrameAccelAssist =
-            (anim->startFrame << 16) + ((anim->flags & ANIM_FLAG_FORWARD) ? animAccel : -animAccel);
+            (anim->startFrame << 16) + ((anim->flags & ANIM_FLAG_BACKWARD) ? animAccel : -animAccel);
         graphNode->animInfo.animFrame = graphNode->animInfo.animFrameAccelAssist >> 16;
     }
 
@@ -900,7 +936,7 @@ s16 geo_update_animation_frame(struct AnimInfo *obj, s32 *accelAssist) {
         return obj->animFrame;
     }
 
-    if (anim->flags & ANIM_FLAG_FORWARD) {
+    if (anim->flags & ANIM_FLAG_BACKWARD) {
         if (obj->animAccel) {
             result = obj->animFrameAccelAssist - obj->animAccel;
         } else {

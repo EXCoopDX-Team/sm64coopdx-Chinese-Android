@@ -1,8 +1,10 @@
 from common import *
 from extract_constants import *
+from vec_types import *
 import sys
 
 in_filename = 'autogen/lua_constants/built-in.lua'
+deprecated_filename = 'autogen/lua_constants/deprecated.lua'
 out_filename = 'src/pc/lua/smlua_constants_autogen.c'
 out_filename_docs = 'docs/lua/constants.md'
 out_filename_defs = 'autogen/lua_definitions/constants.lua'
@@ -22,6 +24,7 @@ in_files = [
     "src/game/interaction.c",
     "src/game/interaction.h",
     "src/pc/djui/djui_hud_utils.h",
+    "src/pc/controller/controller_mouse.h",
     "include/behavior_table.h",
     "src/pc/lua/utils/smlua_model_utils.h",
     "src/pc/lua/utils/smlua_misc_utils.h",
@@ -43,32 +46,85 @@ in_files = [
     "src/audio/external.h",
     "src/game/envfx_snow.h",
     "src/pc/mods/mod_storage.h",
+    "src/pc/mods/mod_fs.h",
     "src/game/first_person_cam.h",
     "src/pc/djui/djui_console.h",
     "src/game/player_palette.h",
     "src/pc/network/lag_compensation.h",
     "src/pc/djui/djui_panel_menu.h",
-    "include/PR/gbi.h"
+    "src/engine/lighting_engine.h",
+    "include/PR/gbi.h",
+    "include/PR/gbi_extension.h",
 ]
 
 exclude_constants = {
     "*": [ "^MAXCONTROLLERS$", "^AREA_[^T].*", "^AREA_T[HTO]", "^CONT_ERR.*", "^READ_MASK$", "^SIGN_RANGE$", ],
+    "include/sm64.h": [ "END_DEMO" ],
+    "include/types.h": [ "GRAPH_NODE_GUARD" ],
+    "src/audio/external.h": [ "DS_DIFF" ],
+    "src/game/save_file.h": [ "EEPROM_SIZE" ],
     "src/game/obj_behaviors.c": [ "^o$" ],
     "src/pc/djui/djui_console.h": [ "CONSOLE_MAX_TMP_BUFFER" ],
-    "src/pc/lua/smlua_hooks.h": [ "MAX_HOOKED_MOD_MENU_ELEMENTS" ],
+    "src/pc/lua/smlua_hooks.h": [ "MAX_HOOKED_MOD_MENU_ELEMENTS", "^HOOK_RETURN_.*", "^ACTION_HOOK_.*", "^MOD_MENU_ELEMENT_.*" ],
     "src/pc/djui/djui_panel_menu.h": [ "RAINBOW_TEXT_LEN" ],
-    "include/PR/gbi.h": ["RM_AA_", "G_RM_", "G_CC_"]
+    "src/pc/mods/mod_fs.h": [ "INT_TYPE_MAX", "FLOAT_TYPE_MAX", "FILE_SEEK_MAX" ],
 }
 
 include_constants = {
     "include/geo_commands.h": [ "BACKGROUND" ],
     "include/level_commands.h": [ "WARP_CHECKPOINT", "WARP_NO_CHECKPOINT" ],
     "src/audio/external.h": [ "SEQ_PLAYER", "DS_" ],
-    "src/pc/mods/mod_storage.h": [ "MAX_KEYS", "MAX_KEY_VALUE_LENGTH" ]
+    "src/pc/mods/mod_storage.h": [ "MAX_KEYS", "MAX_KEY_VALUE_LENGTH" ],
+    "include/PR/gbi.h": [
+        "^G_NOOP$",
+        "^G_SETOTHERMODE_H$",
+        "^G_SETOTHERMODE_L$",
+        "^G_ENDDL$",
+        "^G_DL$",
+        "^G_MOVEMEM$",
+        "^G_MOVEWORD$",
+        "^G_MTX$",
+        "^G_GEOMETRYMODE$",
+        "^G_POPMTX$",
+        "^G_TEXTURE$",
+        "^G_COPYMEM$",
+        "^G_VTX$",
+        "^G_TRI1$",
+        "^G_TRI2$",
+        "^G_SETCIMG$",
+        "^G_SETZIMG$",
+        "^G_SETTIMG$",
+        "^G_SETCOMBINE$",
+        "^G_SETENVCOLOR$",
+        "^G_SETPRIMCOLOR$",
+        "^G_SETBLENDCOLOR$",
+        "^G_SETFOGCOLOR$",
+        "^G_SETFILLCOLOR$",
+        "^G_FILLRECT$",
+        "^G_SETTILE$",
+        "^G_LOADTILE$",
+        "^G_LOADBLOCK$",
+        "^G_SETTILESIZE$",
+        "^G_LOADTLUT$",
+        "^G_SETSCISSOR$",
+        "^G_TEXRECTFLIP$",
+        "^G_TEXRECT$",
+    ],
+    "include/PR/gbi_extension.h": [
+        "^G_VTX_EXT$",
+        "^G_PPARTTOCOLOR$",
+        "^G_SETENVRGB$"
+    ],
+}
+
+# Constants that exist in the source code but should not appear
+# in the documentation or VSCode autocomplete
+hide_constants = {
+    "interaction.h": [ "INTERACT_UNKNOWN_08" ],
 }
 
 pretend_find = [
-    "SOUND_ARG_LOAD"
+    "SOUND_ARG_LOAD",
 ]
 ############################################################################
 
@@ -78,7 +134,14 @@ verbose = len(sys.argv) > 1 and (sys.argv[1] == "-v" or sys.argv[1] == "--verbos
 overrideConstant = {
     'VERSION_REGION': '"US"',
 }
-forced_defines = ['F3DEX_GBI_2']
+defined_values = {
+    'VERSION_US': True,
+    'VERSION_EU': False,
+    'VERSION_JP': False,
+    'VERSION_SH': False,
+    'F3DEX_GBI_2': True,
+    'DEVELOPMENT': False,
+}
 
 ############################################################################
 
@@ -105,8 +168,6 @@ def saw_constant(identifier, inIfBlock):
         print("SAW DUPLICATE CONSTANT: " + identifier)
         return True
     else:
-        global totalConstants
-        totalConstants += 1
         seen_constants.append(identifier)
         return False
 
@@ -146,6 +207,7 @@ def process_enum(filename, line, inIfBlock):
 
     constants = []
     set_to = None
+    set_to_val = None
     index = 0
     fields = val.split(',')
     for field in fields:
@@ -154,14 +216,25 @@ def process_enum(filename, line, inIfBlock):
             continue
 
         if '=' in field:
-            ident, val = field.split('=', 2)
-            constants.append([ident.strip(), val.strip()])
+            ident, val = field.split('=', 1)
+            ident = ident.strip()
+            val = val.strip()
+
+            try:
+                set_to_val = int(eval(val, {}, {}))
+            except Exception:
+                set_to_val = None
+
+            constants.append([ident, val])
             set_to = ident
             index = 1
             continue
 
         if set_to is not None:
-            constants.append([field, '((%s) + %d)' % (set_to, index)])
+            if set_to_val is not None:
+                constants.append([field, str(set_to_val + index)])
+            else:
+                constants.append([field, '((%s) + %d)' % (set_to, index)])
             index += 1
             continue
 
@@ -184,15 +257,17 @@ def process_define(filename, line, inIfBlock):
     val = val.replace('(u8)', '')
     val = val.replace('(u64)', '')
     val = re.sub(r'\.\d+f', '', val)
+    val = val.strip()
 
-    for p in val.split(' '):
-        if p.startswith('0x'):
-            continue
-        p = re.sub(r'0x[a-fA-F0-9]+', '', p)
-        if re.search(r'[a-z]', p) != None and "VERSION_TEXT" not in line and "SM64COOPDX_VERSION" not in line:
-            if 'gCurrentObject' not in line and verbose:
-                print('UNRECOGNIZED DEFINE: ' + line)
-            return None
+    if not (val.startswith('"') and val.endswith('"') and '"' not in val[1:-1]):
+        for p in val.split(' '):
+            if p.startswith('0x'):
+                continue
+            p = re.sub(r'0x[a-fA-F0-9]+', '', p)
+            if re.search(r'[a-z]', p) != None and "VERSION_TEXT" not in line and "SM64COOPDX_VERSION" not in line:
+                if 'gCurrentObject' not in line and verbose:
+                    print('UNRECOGNIZED DEFINE: ' + line)
+                return None
 
     if not allowed_identifier(filename, ident):
         return None
@@ -274,7 +349,7 @@ def process_files():
 
 ############################################################################
 
-def build_constant(processed_constant):
+def build_constant(processed_constant, skip_constant):
     constants = processed_constant
     s = ''
 
@@ -286,16 +361,25 @@ def build_constant(processed_constant):
 
     for c in constants:
         if c[0].startswith('#'):
-            s += '%s\n' % c[0]
+            if c[0].startswith('#ifdef'):
+                skip_constant = not defined_values[c[0].split()[1]]
+            elif c[0].startswith('#else'):
+                skip_constant = not skip_constant
+            elif c[0].startswith('#endif'):
+                skip_constant = False
+            continue
+        if skip_constant:
             continue
         s += '%s=%s\n' % (c[0], c[1].replace('"', "'"))
 
-    return s
+    return s, skip_constant
 
 def build_file(processed_file):
     s = ''
+    skip_constant = False
     for c in processed_file['constants']:
-        s += build_constant(c)
+        cs, skip_constant = build_constant(c, skip_constant)
+        s += cs
 
     return s
 
@@ -306,20 +390,37 @@ def build_files(processed_files):
 
     return s
 
+def build_vec_type_constant(type_name, vec_type, constant, values):
+    txt = 'g%s%s = create_read_only_table({' % (type_name, constant)
+    txt += ','.join([
+        '%s=%s' % (lua_field, str(values[i]))
+        for i, lua_field in enumerate(vec_type["fields_mapping"])
+    ])
+    txt += '})'
+    return txt
+
 def build_to_c(built_files):
     txt = ''
-    with open(get_path(in_filename), 'r') as f:
-        txt = ''
-        for line in f.readlines():
-            txt += line.strip() + '\n'
+
+    # Built-in and deprecated
+    for filename in [in_filename, deprecated_filename]:
+        with open(get_path(filename), 'r') as f:
+            for line in f.readlines():
+                txt += line.strip() + '\n'
+
+    # Vec types constants
+    for type_name, vec_type in VEC_TYPES.items():
+        for constant, values in vec_type.get("constants", {}).items():
+            txt += build_vec_type_constant(type_name, vec_type, constant, values) + '\n'
+
+    # Source files
     txt += '\n' + built_files
 
     while ('\n\n' in txt):
         txt = txt.replace('\n\n', '\n')
 
     lines = txt.splitlines()
-    txt = "".join(f"#define {item}\n" for item in forced_defines)
-    txt += 'char gSmluaConstants[] = ""\n'
+    txt = 'char gSmluaConstants[] = ""\n'
     for line in lines:
         if line.startswith("#"):
             txt += '%s\n' % line
@@ -330,18 +431,24 @@ def build_to_c(built_files):
 
 ############################################################################
 
+def doc_should_document(fname, identifier):
+    if fname in hide_constants:
+        for pattern in hide_constants[fname]:
+            if re.search(pattern, identifier) != None:
+                return False
+    return True
+
 def doc_constant_index(processed_files):
     s = '# Supported Constants\n'
     for processed_file in processed_files:
         s += '- [%s](#%s)\n' % (processed_file['filename'], processed_file['filename'].replace('.', ''))
         constants = [x for x in processed_file['constants'] if 'identifier' in x]
-        constants = sorted(constants, key=lambda d: d['identifier'])
         for c in constants:
             s += '    - [enum %s](#enum-%s)\n' % (c['identifier'], c['identifier'])
     s += '\n<br />\n\n'
     return s
 
-def doc_constant(processed_constant):
+def doc_constant(fname, processed_constant):
     constants = processed_constant
     s = ''
 
@@ -362,15 +469,17 @@ def doc_constant(processed_constant):
     for c in [processed_constant]:
         if c[0].startswith('#'):
             continue
+        if not doc_should_document(fname, c[0]):
+            continue
         s += '- %s\n' % (c[0])
 
     return s
 
 def doc_file(processed_file):
     s = '## [%s](#%s)\n' % (processed_file['filename'], processed_file['filename'])
-    constants = sorted(processed_file['constants'], key=lambda d: 'zzz' + d['identifier'] if 'identifier' in d else d[0])
+    constants = processed_file['constants']
     for c in constants:
-        s += doc_constant(c)
+        s += doc_constant(processed_file['filename'], c)
 
     s += '\n[:arrow_up_small:](#)\n'
     s += '\n<br />\n\n'
@@ -386,7 +495,8 @@ def doc_files(processed_files):
 
 ############################################################################
 
-def def_constant(processed_constant):
+def def_constant(fname, processed_constant, skip_constant):
+    global totalConstants
     constants = processed_constant
     s = ''
 
@@ -394,7 +504,7 @@ def def_constant(processed_constant):
     if is_enum:
         constants = processed_constant['constants']
         if len(constants) == 0:
-            return ''
+            return '', skip_constant
         id = translate_to_def(processed_constant['identifier'])
         klen = 0
         vlen = 0
@@ -404,21 +514,33 @@ def def_constant(processed_constant):
             vlen = max(vlen, len(c[1]))
         for c in constants:
             s += c[0].ljust(klen) + ' = ' + c[1].rjust(vlen) + ' --- @type %s\n' % id
+            totalConstants += 1
         s += '\n--- @alias %s\n' % id
         for c in constants:
             s += '--- | `%s`\n' % c[0]
-        return s
+        return s, skip_constant
 
     for c in [processed_constant]:
         if c[0].startswith('#'):
+            if c[0].startswith('#ifdef'):
+                skip_constant = not defined_values[c[0].split()[1]]
+            elif c[0].startswith('#else'):
+                skip_constant = not skip_constant
+            elif c[0].startswith('#endif'):
+                skip_constant = False
+            continue
+        if skip_constant:
+            continue
+        if not doc_should_document(fname, c[0]):
             continue
         if '"' in c[1]:
             s += '\n--- @type string\n'
         else:
             s += '\n--- @type integer\n'
         s += '%s = %s\n' % (c[0], c[1])
+        totalConstants += 1
 
-    return s
+    return s, skip_constant
 
 def build_to_def(processed_files):
     s = '-- AUTOGENERATED FOR CODE EDITORS --\n\n'
@@ -426,10 +548,20 @@ def build_to_def(processed_files):
         s += f.read()
         s += '\n'
 
+    s += '\n\n-------------------------\n'
+    s += '-- vec types constants --\n'
+    s += '-------------------------\n\n'
+    for type_name, vec_type in VEC_TYPES.items():
+        for constant, values in vec_type.get("constants", {}).items():
+            s += '--- @type %s\n' % (type_name)
+            s += build_vec_type_constant(type_name, vec_type, constant, values) + '\n\n'
+
     for file in processed_files:
-        constants = sorted(file['constants'], key=lambda d: 'zzz' + d['identifier'] if 'identifier' in d else d[0])
+        constants = file['constants']
+        skip_constant = False
         for c in constants:
-            s += def_constant(c)
+            cs, skip_constant = def_constant(file['filename'], c, skip_constant)
+            s += cs
 
     return s
 
@@ -442,15 +574,15 @@ def main():
 
     built_c = build_to_c(built_files)
 
-    with open(get_path(out_filename), 'w') as out:
+    with open(get_path(out_filename), 'w', encoding='utf-8', newline='\n') as out:
         out.write(built_c)
 
     doc = doc_files(processed_files)
-    with open(get_path(out_filename_docs), 'w') as out:
+    with open(get_path(out_filename_docs), 'w', encoding='utf-8', newline='\n') as out:
         out.write(doc)
 
     defs = build_to_def(processed_files)
-    with open(get_path(out_filename_defs), 'w') as out:
+    with open(get_path(out_filename_defs), 'w', encoding='utf-8', newline='\n') as out:
         out.write(defs)
 
     global totalConstants

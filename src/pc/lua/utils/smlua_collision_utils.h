@@ -121,6 +121,7 @@ struct Surface* collision_find_floor(f32 x, f32 y, f32 z);
 /* |description|Finds a potential ceiling at the given `x`, `y`, and `z` values|descriptionEnd| */
 struct Surface* collision_find_ceil(f32 x, f32 y, f32 z);
 
+/* |description|Gets the generated water floor surface used when riding a shell|descriptionEnd| */
 struct Surface* get_water_surface_pseudo_floor(void);
 
 /* |description|Gets the `Collision` with `name`|descriptionEnd| */
@@ -140,5 +141,12 @@ Collision *smlua_collision_util_get_level_collision(u32 level, u16 area);
 
 /* |description|Gets a table of the surface types from `data`|descriptionEnd| */
 void smlua_collision_util_find_surface_types(Collision* data);
+
+/* |description|Checks if the surface is quicksand|descriptionEnd| */
+bool surface_is_quicksand(struct Surface* surf);
+/* |description|Checks if the surface is not a hard surface|descriptionEnd| */
+bool surface_is_not_hard(struct Surface* surf);
+/* |description|Checks if the surface is a painting warp|descriptionEnd| */
+bool surface_is_painting_warp(struct Surface* surf);
 
 #endif

@@ -4,6 +4,7 @@
 #include <PR/ultratypes.h>
 
 #include "types.h"
+#include "dialog_ids.h"
 
 #define MAX_AUDIO_OVERRIDE 128
 
@@ -87,7 +88,7 @@ void sound_banks_enable(u8 player, u16 bankMask);
 /* |description|Sets the `speed` of moving `bank`|descriptionEnd| */
 void set_sound_moving_speed(u8 bank, u8 speed);
 /* |description|Plays a dialog sound corresponding to `dialogID`|descriptionEnd| */
-void play_dialog_sound(u8 dialogID);
+void play_dialog_sound(s32 dialogID);
 /* |description|Sets the `volume` of `player`|descriptionEnd| */
 void set_sequence_player_volume(s32 player, f32 volume);
 /* |description|Plays fading in music (`seqArgs`) on `player` over `fadeTimer`|descriptionEnd| */
@@ -133,9 +134,9 @@ void audio_set_sound_mode(u8 arg0);
 
 void audio_init(void); // in load.c
 
-/* |description||descriptionEnd| */
+/* |description|Resets a sequence's (`seqId`) volume back to the default volume|descriptionEnd| */
 void sound_reset_background_music_default_volume(u8 seqId);
-/* |description||descriptionEnd| */
+/* |description|Sets a sequence's (`seqId`) volume to `volume`|descriptionEnd| */
 void sound_set_background_music_default_volume(u8 seqId, u8 volume);
 
 #if defined(VERSION_EU) || defined(VERSION_SH)
@@ -143,7 +144,9 @@ struct SPTask *unused_80321460();
 struct SPTask *unused_80321460(void);
 #endif
 
+/* |description|Gets a sound left/right pan using `x` and `z`|descriptionEnd| */
 f32 get_sound_pan(f32 x, f32 z);
+/* |description|Gets a sound level intensity based on `distance`|descriptionEnd| */
 f32 sound_get_level_intensity(f32 distance);
 
 #endif // AUDIO_EXTERNAL_H

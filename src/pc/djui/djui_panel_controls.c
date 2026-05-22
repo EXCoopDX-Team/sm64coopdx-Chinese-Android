@@ -16,6 +16,23 @@ void djui_panel_controls_value_change(UNUSED struct DjuiBase* caller) {
     controller_reconfigure();
 }
 
+void djui_panel_controls_analog_stick_options_create(struct DjuiBase* caller) {
+    struct DjuiThreePanel* panel = djui_panel_menu_create(DLANG(CONTROLS, CONTROLS), false);
+    struct DjuiBase* body = djui_three_panel_get_body(panel);
+    {
+        djui_checkbox_create(body, DLANG(CONTROLS, ROTATE_LEFT), &configStick.rotateLeft, NULL);
+        djui_checkbox_create(body, DLANG(CONTROLS, INVERT_LEFT_X), &configStick.invertLeftX, NULL);
+        djui_checkbox_create(body, DLANG(CONTROLS, INVERT_LEFT_Y), &configStick.invertLeftY, NULL);
+        djui_checkbox_create(body, DLANG(CONTROLS, ROTATE_RIGHT), &configStick.rotateRight, NULL);
+        djui_checkbox_create(body, DLANG(CONTROLS, INVERT_RIGHT_X), &configStick.invertRightX, NULL);
+        djui_checkbox_create(body, DLANG(CONTROLS, INVERT_RIGHT_Y), &configStick.invertRightY, NULL);
+
+        djui_button_create(body, DLANG(MENU, BACK), DJUI_BUTTON_STYLE_BACK, djui_panel_menu_back);
+    }
+
+    djui_panel_add(caller, panel, NULL);
+}
+
 void djui_panel_controls_create(struct DjuiBase* caller) {
     struct DjuiThreePanel* panel = djui_panel_menu_create(DLANG(CONTROLS, CONTROLS), false);
     struct DjuiBase* body = djui_three_panel_get_body(panel);
@@ -30,6 +47,7 @@ void djui_panel_controls_create(struct DjuiBase* caller) {
 #else
         djui_button_create(body, DLANG(CONTROLS, N64_BINDS), DJUI_BUTTON_STYLE_NORMAL, djui_panel_controls_n64_create);
         djui_button_create(body, DLANG(CONTROLS, EXTRA_BINDS), DJUI_BUTTON_STYLE_NORMAL, djui_panel_controls_extra_create);
+        djui_button_create(body, DLANG(CONTROLS, ANALOG_STICK_OPTIONS), DJUI_BUTTON_STYLE_NORMAL, djui_panel_controls_analog_stick_options_create);
         djui_checkbox_create(body, DLANG(CONTROLS, BACKGROUND_GAMEPAD), &configBackgroundGamepad, NULL);
 #endif
 #ifndef HANDHELD
@@ -40,9 +58,8 @@ void djui_panel_controls_create(struct DjuiBase* caller) {
 #ifdef HAVE_SDL2
         int numJoys = SDL_NumJoysticks();
         if (numJoys == 0) { numJoys = 1; }
-        if (numJoys > 10) { numJoys = 10; }
 
-        char* gamepadChoices[numJoys];
+        char** gamepadChoices = calloc(numJoys, sizeof(char *));
 
         // Get the names of all connected gamepads, if none is provided, use "Unknown"
         for (int i = 0; i < numJoys; i++) {
@@ -60,7 +77,7 @@ void djui_panel_controls_create(struct DjuiBase* caller) {
                 if (strcmp(gamepadChoices[i], gamepadChoices[j]) == 0) {
                     count++;
                     char newName[256];
-                    
+
                     // If the name is bigger than 9 characters, we need to truncate it first
                     // Then we can append the number so it fits in the slot
 
@@ -70,7 +87,7 @@ void djui_panel_controls_create(struct DjuiBase* caller) {
                     } else {
                         snprintf(newName, sizeof(newName), "%s (%d)", gamepadChoices[i], count);
                     }
-                    
+
                     // Remove the old string and replace it with the new one
                     free(gamepadChoices[i]);
                     gamepadChoices[i] = strdup(newName);
@@ -85,6 +102,8 @@ void djui_panel_controls_create(struct DjuiBase* caller) {
         for (int i = 0; i < numJoys; i++) {
             free(gamepadChoices[i]);
         }
+
+        free(gamepadChoices);
 #endif
 
         djui_slider_create(body, DLANG(CONTROLS, DEADZONE), &configStickDeadzone, 0, 100, djui_panel_controls_value_change);

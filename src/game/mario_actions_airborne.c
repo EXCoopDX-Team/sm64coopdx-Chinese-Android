@@ -72,9 +72,9 @@ Useful for handling collisions with lava walls, giving Mario a strong upward/for
 |descriptionEnd| */
 s32 lava_boost_on_wall(struct MarioState *m) {
     if (!m) { return 0; }
-    bool allow = true;
-    smlua_call_event_hooks_mario_param_and_int_ret_bool(HOOK_ALLOW_HAZARD_SURFACE, m, HAZARD_TYPE_LAVA_WALL, &allow);
-    if ((!allow) || gDjuiInMainMenu) { return FALSE; }
+    bool allowHazard = true;
+    smlua_call_event_hooks(HOOK_ALLOW_HAZARD_SURFACE, m, HAZARD_TYPE_LAVA_WALL, &allowHazard);
+    if ((!allowHazard) || gDjuiInMainMenu) { return FALSE; }
     m->faceAngle[1] = atan2s(m->wallNormal[2], m->wallNormal[0]);
 
     if (m->forwardVel < 24.0f) {
@@ -206,16 +206,16 @@ s32 check_horizontal_wind(struct MarioState *m) {
     struct Surface *floor;
     f32 speed;
     s16 pushAngle;
-    bool allow = true;
-    smlua_call_event_hooks_mario_param_and_int_ret_bool(HOOK_ALLOW_HAZARD_SURFACE, m, HAZARD_TYPE_HORIZONTAL_WIND, &allow);
-    if (!allow) {
-    	return FALSE;
-    }
 
     floor = m->floor;
-    
 
     if (floor && floor->type == SURFACE_HORIZONTAL_WIND) {
+        bool allowHazard = true;
+        smlua_call_event_hooks(HOOK_ALLOW_HAZARD_SURFACE, m, HAZARD_TYPE_HORIZONTAL_WIND, &allowHazard);
+        if (!allowHazard) {
+            return FALSE;
+        }
+
         pushAngle = floor->force << 8;
 
         m->slideVelX += 1.2f * sins(pushAngle);
@@ -1733,7 +1733,7 @@ s32 act_lava_boost(struct MarioState *m) {
             m->health = 0x100;
         } else {
             bool allowDeath = true;
-            smlua_call_event_hooks_mario_param_ret_bool(HOOK_ON_DEATH, m, &allowDeath);
+            smlua_call_event_hooks(HOOK_ON_DEATH, m, &allowDeath);
             if (!allowDeath) {
                 reset_rumble_timers(m);
                 return FALSE;
@@ -1869,7 +1869,7 @@ s32 act_shot_from_cannon(struct MarioState *m) {
             set_mario_action(m, ACT_DIVE_SLIDE, 0);
             m->faceAngle[0] = 0;
             if (allowCameraChange) {
-                if (newcam_active == 0) {
+                if (!gNewCamera.isActive) {
                     set_camera_mode(m->area->camera, m->area->camera->defMode, 1);
                 } else {
                     m->area->camera->mode = CAMERA_MODE_NEWCAM;
@@ -1890,7 +1890,7 @@ s32 act_shot_from_cannon(struct MarioState *m) {
             set_mario_particle_flags(m, PARTICLE_VERTICAL_STAR, FALSE);
             set_mario_action(m, ACT_BACKWARD_AIR_KB, 0);
             if (allowCameraChange) {
-                if (newcam_active == 0) {
+                if (!gNewCamera.isActive) {
                     set_camera_mode(m->area->camera, m->area->camera->defMode, 1);
                 } else {
                     m->area->camera->mode = CAMERA_MODE_NEWCAM;
@@ -1927,7 +1927,7 @@ s32 act_flying(struct MarioState *m) {
     if (m->input & INPUT_Z_PRESSED) {
         if (m->area->camera->mode == CAMERA_MODE_BEHIND_MARIO) {
             if (m->playerIndex == 0) {
-                if (newcam_active == 0) {
+                if (!gNewCamera.isActive) {
                     set_camera_mode(m->area->camera, m->area->camera->defMode, 1);
                 } else {
                     m->area->camera->mode = CAMERA_MODE_NEWCAM;
@@ -1941,7 +1941,7 @@ s32 act_flying(struct MarioState *m) {
     if (!(m->flags & MARIO_WING_CAP)) {
         if (m->area->camera->mode == CAMERA_MODE_BEHIND_MARIO) {
             if (m->playerIndex == 0) {
-                if (newcam_active == 0) {
+                if (!gNewCamera.isActive) {
                     set_camera_mode(m->area->camera, m->area->camera->defMode, 1);
                 } else {
                     m->area->camera->mode = CAMERA_MODE_NEWCAM;
@@ -1954,7 +1954,7 @@ s32 act_flying(struct MarioState *m) {
 
     if (m->area->camera->mode != CAMERA_MODE_BEHIND_MARIO) {
         if (m->playerIndex == 0) {
-            if (newcam_active == 0) {
+            if (!gNewCamera.isActive) {
                 set_camera_mode(m->area->camera, CAMERA_MODE_BEHIND_MARIO, 1);
                 // note: EX sets it to the following line instead, but I have
                 //       no idea why... possibly copy/paste error?
@@ -2007,7 +2007,7 @@ s32 act_flying(struct MarioState *m) {
             m->faceAngle[0] = 0;
 
             if (m->playerIndex == 0) {
-                if (newcam_active == 0) {
+                if (!gNewCamera.isActive) {
                     set_camera_mode(m->area->camera, m->area->camera->defMode, 1);
                 } else {
                     m->area->camera->mode = CAMERA_MODE_NEWCAM;
@@ -2034,7 +2034,7 @@ s32 act_flying(struct MarioState *m) {
                 set_mario_action(m, ACT_BACKWARD_AIR_KB, 0);
 
                 if (m->playerIndex == 0) {
-                    if (newcam_active == 0) {
+                    if (!gNewCamera.isActive) {
                         set_camera_mode(m->area->camera, m->area->camera->defMode, 1);
                     } else {
                         m->area->camera->mode = CAMERA_MODE_NEWCAM;
@@ -2126,7 +2126,7 @@ s32 act_flying_triple_jump(struct MarioState *m) {
 #ifndef VERSION_JP
     if (m->input & (INPUT_B_PRESSED | INPUT_Z_PRESSED)) {
         if (m->playerIndex == 0 && m->area->camera->mode == CAMERA_MODE_BEHIND_MARIO) {
-            if (newcam_active == 0) {
+            if (!gNewCamera.isActive) {
                 set_camera_mode(m->area->camera, m->area->camera->defMode, 1);
             } else {
                 m->area->camera->mode = CAMERA_MODE_NEWCAM;
@@ -2170,7 +2170,7 @@ s32 act_flying_triple_jump(struct MarioState *m) {
 
     if (m->vel[1] < 4.0f) {
         if (m->playerIndex == 0 && m->area->camera->mode != CAMERA_MODE_BEHIND_MARIO) {
-            if (newcam_active == 0) {
+            if (!gNewCamera.isActive) {
                 set_camera_mode(m->area->camera, m->area->camera->defMode, 1);
             } else {
                 m->area->camera->mode = CAMERA_MODE_NEWCAM;
@@ -2297,18 +2297,25 @@ if on certain wind surfaces. Also resets `m.quicksandDepth`
 |descriptionEnd| */
 s32 check_common_airborne_cancels(struct MarioState *m) {
     if (!m) { return 0; }
+
     if (m->pos[1] < m->waterLevel - 100) {
-        return set_water_plunge_action(m);
+        bool allowForceAction = true;
+        smlua_call_event_hooks(HOOK_ALLOW_FORCE_WATER_ACTION, m, false, &allowForceAction);
+        if (allowForceAction) {
+            return set_water_plunge_action(m);
+        }
     }
 
     if (m->input & INPUT_SQUISHED) {
         return drop_and_set_mario_action(m, ACT_SQUISHED, 0);
     }
 
-    bool allow = true;
-    smlua_call_event_hooks_mario_param_and_int_ret_bool(HOOK_ALLOW_HAZARD_SURFACE, m, HAZARD_TYPE_VERTICAL_WIND, &allow);
-    if (allow && m->floor && m->floor->type == SURFACE_VERTICAL_WIND && (m->action & ACT_FLAG_ALLOW_VERTICAL_WIND_ACTION)) {
-        return drop_and_set_mario_action(m, ACT_VERTICAL_WIND, 0);
+    if (m->floor && m->floor->type == SURFACE_VERTICAL_WIND && (m->action & ACT_FLAG_ALLOW_VERTICAL_WIND_ACTION)) {
+        bool allowHazard = true;
+        smlua_call_event_hooks(HOOK_ALLOW_HAZARD_SURFACE, m, HAZARD_TYPE_VERTICAL_WIND, &allowHazard);
+        if (allowHazard) {
+            return drop_and_set_mario_action(m, ACT_VERTICAL_WIND, 0);
+        }
     }
 
     m->quicksandDepth = 0.0f;
@@ -2321,7 +2328,7 @@ Dispatches to the appropriate action function, such as jump, double jump, freefa
 |descriptionEnd| */
 s32 mario_execute_airborne_action(struct MarioState *m) {
     if (!m) { return FALSE; }
-    u32 cancel;
+    s32 cancel;
 
     if (check_common_airborne_cancels(m)) {
         return TRUE;
@@ -2329,7 +2336,7 @@ s32 mario_execute_airborne_action(struct MarioState *m) {
 
     play_far_fall_sound(m);
 
-    if (!smlua_call_action_hook(ACTION_HOOK_EVERY_FRAME, m, (s32*)&cancel)) {
+    if (!smlua_call_action_hook(ACTION_HOOK_EVERY_FRAME, m, &cancel)) {
         /* clang-format off */
         switch (m->action) {
             case ACT_JUMP:                 cancel = act_jump(m);                 break;
@@ -2378,9 +2385,9 @@ s32 mario_execute_airborne_action(struct MarioState *m) {
             case ACT_TOP_OF_POLE_JUMP:     cancel = act_top_of_pole_jump(m);     break;
             case ACT_VERTICAL_WIND:        cancel = act_vertical_wind(m);        break;
             default:
-                LOG_ERROR("Attempted to execute unimplemented action '%04X'", m->action);
+                LOG_ERROR("Attempted to execute unimplemented action '%08X'", m->action);
                 set_mario_action(m, ACT_FREEFALL, 0);
-                return false;
+                return FALSE;
         }
         /* clang-format on */
     }

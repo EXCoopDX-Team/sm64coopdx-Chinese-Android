@@ -11,30 +11,30 @@
  * Hitbox for wiggler's non-head body parts.
  */
 static struct ObjectHitbox sWigglerBodyPartHitbox = {
-    /* interactType:      */ INTERACT_BOUNCE_TOP,
-    /* downOffset:        */ 0,
-    /* damageOrCoinValue: */ 3,
-    /* health:            */ 99, // never decreases
-    /* numLootCoins:      */ 0,
-    /* radius:            */ 20,
-    /* height:            */ 20,
-    /* hurtboxRadius:     */ 20,
-    /* hurtboxHeight:     */ 10,
+    .interactType = INTERACT_BOUNCE_TOP,
+    .downOffset = 0,
+    .damageOrCoinValue = 3,
+    .health = 99, // never decreases
+    .numLootCoins = 0,
+    .radius = 20,
+    .height = 20,
+    .hurtboxRadius = 20,
+    .hurtboxHeight = 10,
 };
 
 /**
  * Hitbox for wiggler's head.
  */
 static struct ObjectHitbox sWigglerHitbox = {
-    /* interactType:      */ INTERACT_BOUNCE_TOP,
-    /* downOffset:        */ 0,
-    /* damageOrCoinValue: */ 3,
-    /* health:            */ 4,
-    /* numLootCoins:      */ 0,
-    /* radius:            */ 60,
-    /* height:            */ 50,
-    /* hurtboxRadius:     */ 30,
-    /* hurtboxHeight:     */ 40,
+    .interactType = INTERACT_BOUNCE_TOP,
+    .downOffset = 0,
+    .damageOrCoinValue = 3,
+    .health = 4,
+    .numLootCoins = 0,
+    .radius = 60,
+    .height = 50,
+    .hurtboxRadius = 30,
+    .hurtboxHeight = 40,
 };
 
 /**
@@ -300,10 +300,10 @@ static void wiggler_act_jumped_on(void) {
     struct MarioState* marioState = nearest_mario_state_to_object(o);
 
     // Text to show on first, second, and third attack.
-    s32* attackText[3] = {
-        (s32*) &gBehaviorValues.dialogs.WigglerAttack1Dialog,
-        (s32*) &gBehaviorValues.dialogs.WigglerAttack2Dialog,
-        (s32*) &gBehaviorValues.dialogs.WigglerAttack3Dialog
+    enum DialogId* attackText[3] = {
+        &gBehaviorValues.dialogs.WigglerAttack1Dialog,
+        &gBehaviorValues.dialogs.WigglerAttack2Dialog,
+        &gBehaviorValues.dialogs.WigglerAttack3Dialog
     };
 
     // Shrink until the squish speed becomes 0, then unisquish

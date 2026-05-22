@@ -3,6 +3,7 @@
 
 #include "dialog_ids.h"
 #include "game/camera.h"
+#include "pc/lua/smlua_utils.h"
 
 enum HudDisplayValue {
     HUD_DISPLAY_LIVES,
@@ -29,6 +30,18 @@ enum HudDisplayFlags {
     HUD_DISPLAY_FLAGS_EMPHASIZE_POWER = 0x8000
 };
 
+enum ActSelectHudPart {
+    ACT_SELECT_HUD_SCORE = 1 << 0,
+    ACT_SELECT_HUD_LEVEL_NAME = 1 << 1,
+    ACT_SELECT_HUD_COURSE_NUM = 1 << 2,
+    ACT_SELECT_HUD_ACT_NAME = 1 << 3,
+    ACT_SELECT_HUD_STAR_NUM = 1 << 4,
+    ACT_SELECT_HUD_PLAYERS_IN_LEVEL = 1 << 5,
+	
+	ACT_SELECT_HUD_NONE = 0,
+	ACT_SELECT_HUD_ALL = ACT_SELECT_HUD_SCORE | ACT_SELECT_HUD_LEVEL_NAME | ACT_SELECT_HUD_COURSE_NUM | ACT_SELECT_HUD_ACT_NAME |ACT_SELECT_HUD_STAR_NUM | ACT_SELECT_HUD_PLAYERS_IN_LEVEL
+};
+
 struct DateTime {
     s32 year;
     s32 month;
@@ -44,6 +57,11 @@ u32 get_network_area_timer(void);
 /* |description|Gets the area update counter incremented when objects are updated|descriptionEnd| */
 u16 get_area_update_counter(void);
 
+/* |description|Returns a temporary signed 32-bit integer pointer with its value set to `initialValue`|descriptionEnd| */
+s32* get_temp_s32_pointer(s32 initialValue);
+/* |description|Gets the signed 32-bit integer value from `pointer`|descriptionEnd| */
+s32 deref_s32_pointer(s32* pointer);
+
 /* |description|Creates a DJUI popup that is broadcasted to every client|descriptionEnd| */
 void djui_popup_create_global(const char* message, int lines);
 /* |description|Returns if popups are disabled|descriptionEnd| */
@@ -56,15 +74,21 @@ void djui_reset_popup_disabled_override(void);
 bool djui_is_playerlist_open(void);
 /* |description|Checks if the DJUI playerlist is attempting to be opened|descriptionEnd| */
 bool djui_attempting_to_open_playerlist(void);
+/* |description|Gets the DJUI playerlist's page index|descriptionEnd| */
+u8 djui_get_playerlist_page_index(void);
+/* |description|Checks if the DJUI chatbox is open|descriptionEnd| */
+bool djui_is_chatbox_open(void);
 /* |description|Gets the DJUI menu font|descriptionEnd| */
 enum DjuiFontType djui_menu_get_font(void);
 /* |description|Gets the DJUI menu theme|descriptionEnd| */
 struct DjuiTheme* djui_menu_get_theme(void);
+/* |description|Checks if the DJUI playerlist ping icon is visible|descriptionEnd| */
+bool djui_is_playerlist_ping_visible(void);
 
 /* |description|Gets the current state of the dialog box|descriptionEnd| */
 s8 get_dialog_box_state(void);
 /* |description|Gets the current dialog box ID|descriptionEnd| */
-s16 get_dialog_id(void);
+s32 get_dialog_id(void);
 
 /* |description|Gets if the last objective collected was a star (0) or a key (1)|descriptionEnd| */
 u8 get_last_star_or_key(void);
@@ -94,7 +118,7 @@ void hud_show(void);
 /* |description|Checks if the HUD is hidden|descriptionEnd| */
 bool hud_is_hidden(void);
 /* |description|Gets a HUD display value|descriptionEnd| */
-s32  hud_get_value(enum HudDisplayValue type);
+s32 hud_get_value(enum HudDisplayValue type);
 /* |description|Sets a HUD display value|descriptionEnd| */
 void hud_set_value(enum HudDisplayValue type, s32 value);
 /* |description|Renders a power meter on the HUD|descriptionEnd| */
@@ -106,8 +130,23 @@ s8 hud_get_flash(void);
 /* |description|Sets if the star counter on the HUD should flash|descriptionEnd| */
 void hud_set_flash(s8 value);
 
+/* |description|Hides part of the Act Select HUD|descriptionEnd| */
+void act_select_hud_hide(enum ActSelectHudPart part);
+/* |description|Shows part of the Act Select HUD|descriptionEnd| */
+void act_select_hud_show(enum ActSelectHudPart part);
+/* |description|Checks if part of the Act Select HUD is hidden|descriptionEnd| */
+bool act_select_hud_is_hidden(enum ActSelectHudPart part);
+
 /* |description|Checks if the game is paused|descriptionEnd| */
 bool is_game_paused(void);
+/* |description|Gets if the pause menu elements are hidden, useful for creating custom pause menus|descriptionEnd| */
+bool is_pause_menu_hidden(void);
+/* |description|Sets if the pause menu elements are hidden, useful for creating custom pause menus|descriptionEnd| */
+void set_pause_menu_hidden(bool hidden);
+/* |description|Pauses the game|descriptionEnd| */
+void game_pause(void);
+/* |description|Unpauses the game|descriptionEnd| */
+void game_unpause(void);
 /* |description|Checks if a screen transition is playing|descriptionEnd| */
 bool is_transition_playing(void);
 
@@ -126,6 +165,14 @@ f32 get_hand_foot_pos_y(struct MarioState* m, u8 index);
 Gets the Z coordinate of Mario's hand (0-1) or foot (2-3)
 but it is important to note that the positions are not updated off-screen|descriptionEnd| */
 f32 get_hand_foot_pos_z(struct MarioState* m, u8 index);
+/* |description|
+Retrieves the animated part position associated to `animPart` from the MarioState `m` and stores it into `pos`. Returns `true` on success or `false` on failure
+|descriptionEnd| */
+bool get_mario_anim_part_pos(struct MarioState *m, u32 animPart, VEC_OUT Vec3f pos);
+/* |description|
+Retrieves the animated part rotation associated to `animPart` from the MarioState `m` and stores it into `rot`. Returns `true` on success or `false` on failure
+|descriptionEnd| */
+bool get_mario_anim_part_rot(struct MarioState *m, u32 animPart, VEC_OUT Vec3s rot);
 
 /* |description|Gets the current save file number (1-indexed)|descriptionEnd| */
 s16 get_current_save_file_num(void);
@@ -140,9 +187,6 @@ void movtexqc_register(const char* name, s16 level, s16 area, s16 type);
 s16 get_water_level(u8 index);
 /* |description|Sets the water level in an area corresponding to `index` (0-indexed)|descriptionEnd| */
 void set_water_level(u8 index, s16 height, bool sync);
-
-/* |description|Plays a screen transition|descriptionEnd| */
-void play_transition(s16 transType, s16 time, u8 red, u8 green, u8 blue);
 
 /* |description|Checks if a course is a main course and not the castle or secret levels|descriptionEnd| */
 bool course_is_main_course(u16 courseNum);
@@ -191,9 +235,9 @@ void set_volume_sfx(f32 volume);
 void set_volume_env(f32 volume);
 
 /* |description|Gets an environment region (gas/water boxes) height value|descriptionEnd| */
-f32 get_environment_region(u8 index);
+s16 get_environment_region(u8 index);
 /* |description|Sets an environment region (gas/water boxes) height value|descriptionEnd| */
-void set_environment_region(u8 index, s32 value);
+void set_environment_region(u8 index, s16 value);
 
 /* |description|Checks if a file exists inside of a mod|descriptionEnd| */
 bool mod_file_exists(const char* filename);
@@ -207,5 +251,26 @@ void reset_window_title(void);
 
 /* |description|Gets the name of the operating system the game is running on|descriptionEnd| */
 const char* get_os_name(void);
+
+/* |description|Gets the current GraphNodeRoot|descriptionEnd|*/
+struct GraphNodeRoot* geo_get_current_root(void);
+
+/* |description|Gets the current GraphNodeMasterList|descriptionEnd|*/
+struct GraphNodeMasterList* geo_get_current_master_list(void);
+
+/* |description|Gets the current GraphNodePerspective|descriptionEnd|*/
+struct GraphNodePerspective* geo_get_current_perspective(void);
+
+/* |description|Gets the current GraphNodeCamera|descriptionEnd|*/
+struct GraphNodeCamera* geo_get_current_camera(void);
+
+/* |description|Gets the current GraphNodeHeldObject|descriptionEnd|*/
+struct GraphNodeHeldObject* geo_get_current_held_object(void);
+
+/* |description|Converts a texture's pixels to a Lua table. Returns nil if failed. Otherwise, returns a 1-indexed table of RGBA pixels|descriptionEnd|*/
+LuaTable texture_to_lua_table(const Texture *tex);
+
+/* |description|Gets the name of the provided texture pointer `tex`|descriptionEnd|*/
+const char *get_texture_name(const Texture *tex);
 
 #endif

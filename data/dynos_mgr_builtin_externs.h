@@ -1,4 +1,9 @@
 #include "include/types.h"
+
+  //////////////
+ // Textures //
+//////////////
+
 extern ALIGNED8 const Texture amp_seg8_texture_08000F18[];
 extern ALIGNED8 const Texture amp_seg8_texture_08001318[];
 extern ALIGNED8 const Texture amp_seg8_texture_08001B18[];
@@ -1600,6 +1605,12 @@ extern ALIGNED8 const Texture texture_selectionbox_forward_icon[];
 extern ALIGNED8 const Texture texture_font_jp[];
 extern ALIGNED8 const Texture texture_font_jp_aliased[];
 extern ALIGNED8 const Texture texture_coopdx_logo[];
+extern ALIGNED8 const Texture texture_ping_empty[];
+extern ALIGNED8 const Texture texture_ping_one[];
+extern ALIGNED8 const Texture texture_ping_two[];
+extern ALIGNED8 const Texture texture_ping_three[];
+extern ALIGNED8 const Texture texture_ping_four[];
+extern ALIGNED8 const Texture texture_ping_full[];
 extern ALIGNED8 const Texture pss_seg7_texture_07000000[];
 extern ALIGNED8 const Texture pss_seg7_texture_07000800[];
 extern ALIGNED8 const Texture pss_seg7_texture_07001000[];
@@ -2410,3 +2421,12 @@ extern ALIGNED8 const Texture cake_end_texture_44[];
 extern ALIGNED8 const Texture cake_end_texture_45[];
 extern ALIGNED8 const Texture cake_end_texture_46[];
 extern ALIGNED8 const Texture cake_end_texture_47[];
+
+  ///////////////////
+ // Display lists //
+///////////////////
+
+#define DISPLAY_LIST(name) \
+extern const Gfx name[];
+#include "include/display_lists.inl"
+#undef DISPLAY_LIST
