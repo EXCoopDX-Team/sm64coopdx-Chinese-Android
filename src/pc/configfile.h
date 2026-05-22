@@ -171,13 +171,15 @@ extern unsigned int configDjuiScale;
 // other
 extern unsigned int configRulesVersion;
 extern bool         configCompressOnStartup;
-extern bool         configSkipPackGeneration;
 #ifdef TOUCH_CONTROLS
-extern bool         configAutohideTouch;
-extern bool         configSlideTouch;
-extern bool         configPhantomTouch;
-extern bool         configSnapTouch;
+extern unsigned int configTouchButtonSize;
+extern unsigned int configTouchStickSize;
+extern unsigned int configTouchControlRed;
+extern unsigned int configTouchControlGreen;
+extern unsigned int configTouchControlBlue;
+extern unsigned int configTouchControlAlpha;
 #endif
+extern bool         configSkipPackGeneration;
 
 // secrets
 extern bool configExCoopTheme;

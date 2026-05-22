@@ -7,19 +7,20 @@
 
 #define CHAT_BUTTON 0x001C
 #define PLAYERLIST_BUTTON 0x000F
+#define CONFIRM_BUTTON 0x0001
+#define DISCARD_BUTTON 0x0002
+#define RESET_BUTTON 0x0003
+#define SNAP_BUTTON 0x0004
 #define CONSOLE_BUTTON 0x0005
 
-#define SCANCODE_BACK 0
+#define CONTROL_ELEMENT_COUNT 21
+#define CONTROL_CONFIG_ELEMENT_COUNT 4
 
 #define SCREEN_WIDTH_API 1280
 #define SCREEN_HEIGHT_API 960
 
 #define LEFT_EDGE ((int)floorf(SCREEN_WIDTH_API / 2 - SCREEN_HEIGHT_API / 2 * gfx_current_dimensions.aspect_ratio))
 #define RIGHT_EDGE ((int)ceilf(SCREEN_WIDTH_API / 2 + SCREEN_HEIGHT_API / 2 * gfx_current_dimensions.aspect_ratio))
-#define LEFT_EDGE_FUNC(v) ((int)floorf(SCREEN_WIDTH_API / 2 - SCREEN_HEIGHT_API / 2 * gfx_current_dimensions.aspect_ratio + (v)))
-#define RIGHT_EDGE_FUNC(v) ((int)ceilf(SCREEN_WIDTH_API / 2 + SCREEN_HEIGHT_API / 2 * gfx_current_dimensions.aspect_ratio - (v)))
-#define RECT_FROM_LEFT_EDGE(v) ((int)floorf(LEFT_EDGE_FUNC(v)))
-#define RECT_FROM_RIGHT_EDGE(v) ((int)ceilf(RIGHT_EDGE_FUNC(v)))
 
 #define CORRECT_TOUCH_X(x) ((x * (RIGHT_EDGE - LEFT_EDGE)) + LEFT_EDGE)
 #define CORRECT_TOUCH_Y(y) (y * SCREEN_HEIGHT_API)
@@ -58,13 +59,18 @@ enum ConfigControlElementIndex {
     TOUCH_DLEFT,
     TOUCH_DRIGHT,
     TOUCH_CONSOLE,
-    TOUCH_COUNT,
+};
+
+enum ConfigControlConfigElementIndex {
+    TOUCH_CONFIRM,
+    TOUCH_DISCARD,
+    TOUCH_RESET,
+    TOUCH_SNAP,
 };
 
 typedef struct {
-    u32 x, y, size;
-    enum ConfigControlElementAnchor anchor;
-    u32 r, g, b, a;
+    u32 x[MAX_BINDS], y[MAX_BINDS], size[MAX_BINDS];
+    enum ConfigControlElementAnchor anchor[MAX_BINDS];
 } ConfigControlElement;
 
 extern ConfigControlElement configControlElements[];
@@ -74,8 +80,8 @@ extern struct ControllerAPI controller_touchscreen;
 extern s16 touch_x;
 extern s16 touch_y;
 
-extern bool gInTouchConfig, gGamepadActive;
-extern enum ConfigControlElementIndex gSelectedTouchElement;
+extern bool gInTouchConfig, gGamepadActive,
+            configAutohideTouch, configSlideTouch, configPhantomTouch, configElementSnap;
 
 struct TouchEvent {
     // Note to VDavid003: In Xorg, touchID became large!
@@ -83,16 +89,12 @@ struct TouchEvent {
     // But X11 SDL2 populated this with 699!
     // For X11 compatibility, I matched the types.
     SDL_TouchID touchID; //Should not be 0
-    f32 x, y; //Should be from 0 to 1
+    float x, y; //Should be from 0 to 1
 };
 
 struct Position {
     s32 x, y;
 };
-
-typedef struct {
-    u8 r, g, b, a;
-} Colors;
 
 enum ControlElementType {
     Joystick,
@@ -109,11 +111,11 @@ struct ControlElement {
     enum ControlElementType type;
     SDL_TouchID touchID; //0 = not being touched, 1+ = Finger being used
     //Joystick
-    s32 joyX, joyY;
+    int joyX, joyY;
     //Button
-    s32 buttonID;
+    int buttonID;
     struct ButtonState buttonTexture;
-    s32 slideTouch;
+    int slideTouch;
 };
 
 void touch_down(struct TouchEvent* event);

@@ -21,8 +21,6 @@
 #include "pc/utils/misc.h"
 
 static Gfx* sSavedDisplayListHead = NULL;
-static Gfx* sHookHudRenderGfx = NULL;
-static size_t sHookHudRenderGfxSize = 0;
 
 struct DjuiRoot* gDjuiRoot = NULL;
 struct DjuiText* gDjuiPauseOptions = NULL;
@@ -73,27 +71,17 @@ void djui_shutdown(void) {
 
 void patch_djui_before(void) {
     sDjuiRendered60fps = false;
-    sSavedDisplayListHead = NULL;
 }
 
 void patch_djui_interpolated(UNUSED f32 delta) {
-    extern f32 gFramePercentage;
-    if (gDjuiInMainMenu || gDjuiPanelPauseCreated) {
-        if (gFramePercentage >= 0.5f && !sDjuiRendered60fps) {
-            // reset the head and re-render DJUI
-            sDjuiRendered60fps = true;
-            if (sSavedDisplayListHead == NULL) { return; }
-            gDisplayListHead = sSavedDisplayListHead;
-            djui_render();
-            gDPFullSync(gDisplayListHead++);
-            gSPEndDisplayList(gDisplayListHead++);
-        } else {
-            // patch the display list instead of a full re-render
-            // to make some elements on screen be smooth, while keeping things cheap.
-            Gfx* displayListHead = gDisplayListHead;
-            djui_cursor_interp();
-            gDisplayListHead = displayListHead;
-        }
+    // reset the head and re-render DJUI
+    if (delta >= 0.5f && !sDjuiRendered60fps && (gDjuiInMainMenu || gDjuiPanelPauseCreated)) {
+        sDjuiRendered60fps = true;
+        if (sSavedDisplayListHead == NULL) { return; }
+        gDisplayListHead = sSavedDisplayListHead;
+        djui_render();
+        gDPFullSync(gDisplayListHead++);
+        gSPEndDisplayList(gDisplayListHead++);
     }
 }
 
@@ -174,20 +162,14 @@ void djui_reset_hud_params(void) {
     djui_hud_set_rotation(0, 0, 0);
     djui_hud_reset_color();
     djui_hud_set_filter(FILTER_NEAREST);
-    djui_hud_reset_viewport();
-    djui_hud_reset_scissor();
 }
 
 void djui_render(void) {
     if (!sDjuiInited || gDjuiDisabled) { return; }
+    djui_reset_hud_params();
 
     sSavedDisplayListHead = gDisplayListHead;
     gDjuiHudUtilsZ = 0;
-    djui_reset_hud_params();
-#ifdef TOUCH_CONTROLS
-    extern bool is_game_paused(void);
-    if (gInTouchConfig || is_game_paused()) render_touch_controls();
-#endif
 
     create_dl_ortho_matrix();
     djui_gfx_displaylist_begin();
@@ -196,23 +178,7 @@ void djui_render(void) {
         djui_base_render(&sDjuiRootBehind->base);
     }
 
-    // To maintain consistency with other hooks, HOOK_ON_HUD_RENDER must run at 30 fps
-    // During interpolated frames, copy the generated display list without running the hook again
-    if (!sDjuiRendered60fps) {
-        Gfx *hookHudRenderStart = gDisplayListHead;
-        smlua_call_event_hooks(HOOK_ON_HUD_RENDER, djui_reset_hud_params);
-        size_t gfxSize = sizeof(Gfx) * (gDisplayListHead - hookHudRenderStart);
-        if (gfxSize > 0) {
-            if (gfxSize > sHookHudRenderGfxSize) {
-                sHookHudRenderGfx = realloc(sHookHudRenderGfx, gfxSize);
-            }
-            memcpy(sHookHudRenderGfx, hookHudRenderStart, gfxSize);
-        }
-        sHookHudRenderGfxSize = gfxSize;
-    } else if (sHookHudRenderGfx != NULL && sHookHudRenderGfxSize > 0) {
-        memcpy(gDisplayListHead, sHookHudRenderGfx, sHookHudRenderGfxSize);
-        gDisplayListHead += sHookHudRenderGfxSize / sizeof(Gfx);
-    }
+    smlua_call_event_hooks(HOOK_ON_HUD_RENDER, djui_reset_hud_params);
 
     djui_panel_update();
     djui_popup_update();
@@ -234,15 +200,10 @@ void djui_render(void) {
     }
 
     djui_cursor_update();
-#ifdef TOUCH_CONTROLS
-    if (!gInTouchConfig && !is_game_paused()) render_touch_controls();
+#ifdef TOUCH_CONTROLS // In the future, check if touch controls exist rather than checking if the TOUCH_CONTROLS define exists
+    render_touch_controls();
 #endif
     djui_base_render(&gDjuiConsole->base);
-
-    // Be careful! Djui interactables update at 30hz to avoid display list corruption.
-    if (!sDjuiRendered60fps) {
-        djui_interactable_update();
-    }
-
+    djui_interactable_update();
     djui_gfx_displaylist_end();
 }
