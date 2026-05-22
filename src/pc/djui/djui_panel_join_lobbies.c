@@ -47,7 +47,7 @@ static void djui_panel_join_lobby_description_create(void) {
     djui_base_set_padding(&panel->base, 16, 16, 16, 16);
     {
 #ifdef TOUCH_CONTROLS
-        sJoinButton = djui_button_create(&panel->base, "No Lobby Selected", DJUI_BUTTON_STYLE_NORMAL, djui_panel_join_lobby);
+        sJoinButton = djui_button_create(&panel->base, "未选择房间", DJUI_BUTTON_STYLE_NORMAL, djui_panel_join_lobby);
         djui_base_set_size(&sJoinButton->base, 1.0f, 64);
         djui_base_set_alignment(&sJoinButton->base, DJUI_HALIGN_RIGHT, DJUI_VALIGN_TOP);
         djui_base_set_enabled(&sJoinButton->base, false);
@@ -83,7 +83,7 @@ static void djui_lobby_on_hover_end(UNUSED struct DjuiBase* base) {
 void djui_panel_join_lobby(struct DjuiBase* caller) {
 #ifdef TOUCH_CONTROLS
     if (!gCoopNetDesiredLobby) return;
-    djui_text_set_text(sJoinButton->text, "Joining...");
+    djui_text_set_text(sJoinButton->text, "加入中...");
     djui_base_set_enabled(&sJoinButton->base, false);
 #else
     gCoopNetDesiredLobby = (uint64_t)caller->tag;
@@ -98,7 +98,7 @@ void djui_panel_join_lobby(struct DjuiBase* caller) {
 #ifdef TOUCH_CONTROLS
 void djui_panel_select_lobby(struct DjuiBase* caller) {
     gCoopNetDesiredLobby = (uint64_t)caller->tag;
-    djui_text_set_text(sJoinButton->text, "Join");
+    djui_text_set_text(sJoinButton->text, "加入");
     djui_base_set_enabled(&sJoinButton->base, true);
 }
 #endif
@@ -166,7 +166,7 @@ void djui_panel_join_lobbies_refresh(UNUSED struct DjuiBase* caller) {
     djui_text_set_text(sRefreshButton->text, DLANG(LOBBIES, REFRESHING));
     djui_base_set_enabled(&sRefreshButton->base, false);
 #ifdef TOUCH_CONTROLS
-    djui_text_set_text(sJoinButton->text, "No Lobby Selected");
+    djui_text_set_text(sJoinButton->text, "未选择房间");
     djui_base_set_enabled(&sJoinButton->base, false);
 #endif
     djui_paginated_update_page_buttons(sLobbyPaginated);
