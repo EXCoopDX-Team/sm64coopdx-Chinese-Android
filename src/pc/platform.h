@@ -7,7 +7,7 @@
 
 /* platform-specific functions and whatnot */
 #ifdef TARGET_ANDROID
-#define ANDROID_APPNAME "com.maniscat2.sm64coopdx"
+#define ANDROID_APPNAME "com.shangshanruo666.sm64coopdxcnsv"
 #endif
 
 #define SYS_MAX_PATH 4096
