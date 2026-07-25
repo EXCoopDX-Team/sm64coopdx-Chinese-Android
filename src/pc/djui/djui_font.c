@@ -19,7 +19,7 @@ static void djui_font_normal_render_char(const char* c) {
         u32 tx = index % 64;
         u32 ty = index / 64;
         extern ALIGNED8 const Texture texture_font_emoji[];
-        djui_gfx_render_texture_tile(texture_font_emoji, 2048, 256, G_IM_FMT_RGBA, G_IM_SIZ_32b, tx * 32, ty * 32, 32, 32, false, true);
+        djui_gfx_render_texture_tile_font(texture_font_emoji, 2048, 256, G_IM_FMT_RGBA, G_IM_SIZ_32b, tx * 32, ty * 32, 32, 32);
     } else if (index & 0x010000) {
         index &= ~0x010000;
         u32 tx = index % 64;
@@ -202,7 +202,7 @@ static void djui_font_aliased_render_char(const char* c) {
         u32 tx = index % 64;
         u32 ty = index / 64;
         extern ALIGNED8 const Texture texture_font_emoji[];
-        djui_gfx_render_texture_tile(texture_font_emoji, 2048, 256, G_IM_FMT_RGBA, G_IM_SIZ_32b, tx * 32, ty * 32, 32, 32, false, true);
+        djui_gfx_render_texture_tile_font(texture_font_emoji, 2048, 256, G_IM_FMT_RGBA, G_IM_SIZ_32b, tx * 32, ty * 32, 32, 32);
     } else if (index & 0x010000) {
         index &= ~0x010000;
         u32 tx = index % 64;
@@ -280,13 +280,13 @@ static void djui_font_custom_hud_recolor_render_char(const char* c) {
         u32 tx = index % 64;
         u32 ty = index / 64;
         extern ALIGNED8 const Texture texture_font_emoji[];
-        djui_gfx_render_texture_tile_font(texture_font_emoji, 2048, 256, G_IM_FMT_RGBA, G_IM_SIZ_32b, tx * 32, ty * 32, 32, 32, false);
+        djui_gfx_render_texture_tile_font(texture_font_emoji, 2048, 256, G_IM_FMT_RGBA, G_IM_SIZ_32b, tx * 32, ty * 32, 32, 32);
     } else if (index & 0x010000) {
         index &= ~0x010000;
         u32 tx = index % 64;
         u32 ty = index / 64;
         extern ALIGNED8 const Texture texture_font_cn[];
-        djui_gfx_render_texture_tile_font(texture_font_cn, 1024, 2048, G_IM_FMT_RGBA, G_IM_SIZ_32b, tx * 16, ty * 19, 16, 19, false);
+        djui_gfx_render_texture_tile_font(texture_font_cn, 1024, 2048, G_IM_FMT_RGBA, G_IM_SIZ_32b, tx * 16, ty * 19, 16, 19);
     } else {
         u32 tx = index % 16;
         u32 ty = index / 16;
@@ -381,7 +381,7 @@ static void djui_font_special_render_char(const char* c) {
         u32 tx = index % 64;
         u32 ty = index / 64;
         extern ALIGNED8 const Texture texture_font_emoji[];
-        djui_gfx_render_texture_tile_font(texture_font_emoji, 2048, 256, G_IM_FMT_RGBA, G_IM_SIZ_32b, tx * 32, ty * 32, 32, 32, false, true);
+        djui_gfx_render_texture_tile_font(texture_font_emoji, 2048, 256, G_IM_FMT_RGBA, G_IM_SIZ_32b, tx * 32, ty * 32, 32, 32);
     } else if (index & 0x010000) {
         index &= ~0x010000;
         u32 tx = index % 64;
