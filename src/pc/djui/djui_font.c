@@ -388,10 +388,6 @@ static void djui_font_special_render_char(const char* c) {
         u32 ty = index / 64;
         extern ALIGNED8 const Texture texture_font_cn[];
         djui_gfx_render_texture_tile_font(texture_font_cn, 1024, 2048, G_IM_FMT_RGBA, G_IM_SIZ_32b, tx * 16, ty * 19, 16, 19);
-// =======
-        // extern ALIGNED8 const Texture texture_font_jp[];
-        // djui_gfx_render_texture_tile_font(texture_font_jp, 512, 1024, G_IM_FMT_RGBA, G_IM_SIZ_32b, tx * 8, ty * 16, 8, 16);
-// >>>>>>> Av1.5.1
     } else {
         u32 tx = index % 32;
         u32 ty = index / 32;
