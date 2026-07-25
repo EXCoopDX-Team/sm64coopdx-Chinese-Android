@@ -68,3 +68,4 @@ jobs:
               with:
                 name: sm64coopdx-android
                 path: ./build/us_pc/sm64coopdx_Android.zip
+                retention-days: 1
