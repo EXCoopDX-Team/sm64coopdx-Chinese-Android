@@ -34,6 +34,7 @@ enum ConfigControlElementAnchor {
     CONTROL_ELEMENT_LEFT,
     CONTROL_ELEMENT_RIGHT,
     CONTROL_ELEMENT_CENTER,
+    CONTROL_ELEMENT_HIDDEN,
 };
 
 enum ConfigControlElementIndex {
