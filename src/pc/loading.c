@@ -189,7 +189,8 @@ void render_rom_setup_screen(void) {
 
 #ifdef TARGET_ANDROID
     // loading_screen_set_segment_text("No rom detected, place Super Mario 64 (U) [!].z64 in com.shangshanruo666.sm64coopdxcnsv or the user folder");
-    loading_screen_set_segment_text("No rom detected, select Super Mario 64 (U) [!].z64 in the file picker");
+    // loading_screen_set_segment_text("No rom detected, select Super Mario 64 (U) [!].z64 in the file picker");
+    loading_screen_set_segment_text("i want a fucking Super Mario 64 original rom file if u not i will fuck you mother :( angry")
     open_file_picker();
     u32 reopenDelay = 0;
 #else
