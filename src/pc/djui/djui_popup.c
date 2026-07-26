@@ -41,7 +41,6 @@ void djui_popup_create(const char* message, int lines) {
     if (djui_is_popup_disabled()) { return; }
     struct DjuiPopup* popup = calloc(1, sizeof(struct DjuiPopup));
     struct DjuiBase* base = &popup->base;
-    char msgdebug[256];
 
     f32 height = lines * 32 + 32;
     djui_base_init(&gDjuiRoot->base, base, djui_popup_render, djui_popup_destroy);
@@ -62,10 +61,6 @@ void djui_popup_create(const char* message, int lines) {
 
     sPopupListY -= height + 4;
     djui_popup_add_to_list(popup);
-    // 调试
-    snprintf(msgdebug, sizeof(msgdebug), "%s%s", "djuiPopups: ", message);
-    djui_console_message_create(msgdebug, CONSOLE_MESSAGE_INFO);
-    // 调试 done
     play_sound(SOUND_MENU_PINCH_MARIO_FACE, gGlobalSoundSource);
 }
 
