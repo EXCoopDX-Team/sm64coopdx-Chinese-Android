@@ -3,11 +3,13 @@ name: Build coop
 on:
     workflow_dispatch:
     push:
+        branches: [ 1.5.1-cn ]
+    pull_request:
         branches: [ android-dev ]
 
 jobs:
     build-android:
-        if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[build]') }}
+        if: ${{ (github.event_name != 'push' || contains(github.event.head_commit.message, '[build]')) && github.event.pull_request.draft == false }}
         runs-on: ubuntu-22.04
         steps:
             - name: Checkout repository
@@ -66,3 +68,4 @@ jobs:
               with:
                 name: sm64coopdx-android
                 path: ./build/us_pc/sm64coopdx_Android.zip
+                retention-days: 1
