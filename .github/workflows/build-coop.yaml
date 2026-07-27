@@ -1,9 +1,9 @@
-name: Build coop
+name: Build Android Chinese Coop
 
 on:
     workflow_dispatch:
     push:
-        branches: [ 1.5.1-cn ]
+        branches: [ android-dev ]
     pull_request:
         branches: [ android-dev ]
 
