@@ -6,6 +6,8 @@
 #include "pc/configfile.h"
 #include "pc/lua/utils/smlua_misc_utils.h"
 
+#include "djui_console.h"
+
 #define DJUI_POPUP_LIFETIME 6.0f
 
 struct DjuiPopupList {
