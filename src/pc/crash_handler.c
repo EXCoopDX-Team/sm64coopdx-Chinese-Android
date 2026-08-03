@@ -73,24 +73,24 @@ static struct {
     const char *error;
     const char *message;
 } sCrashHandlerErrors[] = {
-    { EXCEPTION_ACCESS_VIOLATION,       "Segmentation Fault",       "The game tried to %s at address 0x%016llX." },
-    { EXCEPTION_ARRAY_BOUNDS_EXCEEDED,  "Array Out Of Bounds",      "The game tried to access an element out of the array bounds." },
-    { EXCEPTION_DATATYPE_MISALIGNMENT,  "Data Misalignment",        "The game tried to access misaligned data." },
-    { EXCEPTION_BREAKPOINT,             "Breakpoint",               "The game reached a breakpoint." },
-    { EXCEPTION_FLT_DENORMAL_OPERAND,   "Float Denormal Operand",   "The game tried to perform a floating point operation with a denormal operand." },
-    { EXCEPTION_FLT_DIVIDE_BY_ZERO,     "Float Division By Zero",   "The game tried to divide a floating point number by zero." },
-    { EXCEPTION_FLT_INEXACT_RESULT,     "Float Inexact Result",     "The game couldn't represent the result of a floating point operation as a decimal fraction." },
-    { EXCEPTION_FLT_INVALID_OPERATION,  "Float Invalid Operation",  "The game tried to perform an invalid floating point operation." },
-    { EXCEPTION_FLT_OVERFLOW,           "Float Overflow",           "An overflow occurred with a floating point number." },
-    { EXCEPTION_FLT_STACK_CHECK,        "Float Stack Overflow",     "The game performed a floating point operation resulting in a stack overflow." },
-    { EXCEPTION_FLT_UNDERFLOW,          "Float Underflow",          "An underflow occurred with a floating point number." },
-    { EXCEPTION_ILLEGAL_INSTRUCTION,    "Illegal Instruction",      "The game tried to execute an invalid instruction." },
-    { EXCEPTION_IN_PAGE_ERROR,          "Page Error",               "The game tried to %s at address 0x%016llX." },
-    { EXCEPTION_INT_DIVIDE_BY_ZERO,     "Integer Division By Zero", "The game tried to divide an integer by zero." },
-    { EXCEPTION_INT_OVERFLOW,           "Integer Overflow",         "An overflow occurred with an integer." },
-    { EXCEPTION_PRIV_INSTRUCTION,       "Instruction Not Allowed",  "The game tried to execute an invalid instruction." },
-    { EXCEPTION_STACK_OVERFLOW,         "Stack Overflow",           "The game performed an operation resulting in a stack overflow." },
-    { 0,                                "Unknown Exception",        "An unknown exception occurred." },
+    { EXCEPTION_ACCESS_VIOLATION,       "段错误（你越界了，程序被玩坏了！）",       "游戏试图在地址 0x%016llX %s 内存。" },
+    { EXCEPTION_ARRAY_BOUNDS_EXCEEDED,  "数组越界（你访问了不存在的元素）",      "游戏访问了超出数组范围的下标。" },
+    { EXCEPTION_DATATYPE_MISALIGNMENT,  "数据未对齐（强迫症犯了）",        "游戏访问了未对齐的数据，这不行。" },
+    { EXCEPTION_BREAKPOINT,             "断点（调试模式）",               "游戏遇到一个断点，可能是调试器干的。" },
+    { EXCEPTION_FLT_DENORMAL_OPERAND,   "浮点非正规操作数",   "游戏对浮点数进行了非正规操作。" },
+    { EXCEPTION_FLT_DIVIDE_BY_ZERO,     "浮点除以零（数学老师哭了）",   "游戏试图用浮点数除以零。" },
+    { EXCEPTION_FLT_INEXACT_RESULT,     "浮点不精确结果",     "游戏无法精确表示浮点运算结果。" },
+    { EXCEPTION_FLT_INVALID_OPERATION,  "非法浮点操作",  "游戏进行了无效的浮点运算。" },
+    { EXCEPTION_FLT_OVERFLOW,           "浮点溢出（数值太大）",           "浮点数溢出，爆了。" },
+    { EXCEPTION_FLT_STACK_CHECK,        "浮点栈溢出",        "浮点运算导致栈溢出。" },
+    { EXCEPTION_FLT_UNDERFLOW,          "浮点下溢（数值太小）",          "浮点数下溢，太小了。" },
+    { EXCEPTION_ILLEGAL_INSTRUCTION,    "非法指令（CPU懵了）",      "游戏试图执行一条不存在的指令。" },
+    { EXCEPTION_IN_PAGE_ERROR,          "分页错误",               "游戏在地址 0x%016llX %s 时发生分页错误。" },
+    { EXCEPTION_INT_DIVIDE_BY_ZERO,     "整数除以零（数学老师二次崩溃）", "游戏试图用整数除以零。" },
+    { EXCEPTION_INT_OVERFLOW,           "整数溢出",         "整数运算溢出，结果炸了。" },
+    { EXCEPTION_PRIV_INSTRUCTION,       "特权指令（权限不足）",  "游戏尝试执行需要更高权限的指令。" },
+    { EXCEPTION_STACK_OVERFLOW,         "栈溢出（内存不够，程序员要加薪！）",         "游戏栈溢出了，可能递归太深。" },
+    { 0,                                "未知异常（灵异事件）",        "发生了一个未知的异常，可能是玄学。" },
 };
 
 
@@ -165,10 +165,10 @@ static struct {
     const char *error;
     const char *message;
 } sCrashHandlerErrors[] = {
-    { SIGBUS,       "Bad Memory Access",        "The game tried to access memory out of bounds." },
-    { SIGFPE,       "Floating Point Exception", "The game tried to perform illegal arithmetic on a floating point." },
-    { SIGILL,       "Illegal Instruction",      "The game tried to execute an invalid instruction." },
-    { SIGSEGV,      "Segmentation Fault",       "The game tried to %s at address 0x%016llX." },
+    { SIGBUS,       "内存访问错误（越界了）",        "游戏试图访问非法内存地址。" },
+    { SIGFPE,       "浮点异常（算术错误）", "游戏对浮点数进行了非法算术操作。" },
+    { SIGILL,       "非法指令（CPU看不懂）",      "游戏执行了一条非法指令。" },
+    { SIGSEGV,      "段错误（你越界了，程序被玩坏了！）",       "游戏在地址 0x%016llX %s 时发生段错误。" },
 };
 
 #endif
@@ -281,11 +281,11 @@ static void crash_handler_add_info_str(CrashHandlerText** pTextP, f32 x, f32 y, 
 static void crash_handler_add_version_str(CrashHandlerText** pTextP, f32 x, f32 y) {
     CrashHandlerText* pText = *pTextP;
 #ifdef DEVELOPMENT
-    crash_handler_add_info_str(&pText, x, y, "Dev Build", SM64COOPDX_VERSION);
+    crash_handler_add_info_str(&pText, x, y, "开发版", SM64COOPDX_VERSION);
 #else
-    crash_handler_add_info_str(&pText, x, y, "Release", SM64COOPDX_VERSION);
+    crash_handler_add_info_str(&pText, x, y, "正式版", SM64COOPDX_VERSION);
 #endif
-    crash_handler_add_info_str(&pText, x, y + 8, "Renderer", gRenderApi->get_name());
+    crash_handler_add_info_str(&pText, x, y + 8, "渲染器", gRenderApi->get_name());
     *pTextP = pText;
 }
 
@@ -308,23 +308,23 @@ static void crash_handler(const int signalNum, siginfo_t *info, UNUSED ucontext_
     gDjuiDisabled = true;
 
     // Exception report
-    crash_handler_set_text(8, -4, 0xFF, 0x80, 0x00, "%s", "Please report this crash with a consistent way to reproduce it.");
+    crash_handler_set_text(8, -4, 0xFF, 0x80, 0x00, "%s", "哇！你触发了隐藏的崩溃事件！请截图发给开发者，他会感动到哭的～");
 
     // Exception address, code, type and info
 #ifdef _WIN32
     if (ExceptionInfo && ExceptionInfo->ExceptionRecord) {
         PEXCEPTION_RECORD er = ExceptionInfo->ExceptionRecord;
-        crash_handler_set_text( 8, 4, 0xFF, 0x00, 0x00, "%s", "Exception occurred at address ");
+        crash_handler_set_text( 8, 4, 0xFF, 0x00, 0x00, "%s", "异常发生在地址 ");
         crash_handler_set_text(-1, 4, 0xFF, 0xFF, 0x00, "0x%016llX", (PTR) er->ExceptionAddress);
-        crash_handler_set_text(-1, 4, 0xFF, 0x00, 0x00, "%s", " with error code ");
+        crash_handler_set_text(-1, 4, 0xFF, 0x00, 0x00, "%s", "，错误代码 ");
         crash_handler_set_text(-1, 4, 0xFF, 0x00, 0xFF, "0x%08X", (u32) er->ExceptionCode);
-        crash_handler_set_text(-1, 4, 0xFF, 0x00, 0x00, "%s", ":");
+        crash_handler_set_text(-1, 4, 0xFF, 0x00, 0x00, "%s", "：");
         for (s32 i = 0; i != ARRAY_SIZE(sCrashHandlerErrors); ++i) {
             if (sCrashHandlerErrors[i].code == (u32) er->ExceptionCode || sCrashHandlerErrors[i].code == 0) {
                 crash_handler_set_text( 8, 12, 0xFF, 0x00, 0x00, "%s", sCrashHandlerErrors[i].error);
                 crash_handler_set_text(-1, 12, 0xFF, 0xFF, 0xFF, "%s", " - ");
                 if (er->ExceptionCode == EXCEPTION_ACCESS_VIOLATION || er->ExceptionCode == EXCEPTION_IN_PAGE_ERROR) {
-                    crash_handler_set_text(-1, 12, 0xFF, 0xFF, 0xFF, sCrashHandlerErrors[i].message, (er->ExceptionInformation[0] ? "write" : "read"), (PTR)er->ExceptionInformation[1]);
+                    crash_handler_set_text(-1, 12, 0xFF, 0xFF, 0xFF, sCrashHandlerErrors[i].message, (er->ExceptionInformation[0] ? "写入" : "读取"), (PTR)er->ExceptionInformation[1]);
                 } else {
                     crash_handler_set_text(-1, 12, 0xFF, 0xFF, 0xFF, "%s", sCrashHandlerErrors[i].message);
                 }
@@ -333,11 +333,11 @@ static void crash_handler(const int signalNum, siginfo_t *info, UNUSED ucontext_
         }
 #elif __linux__
     if (signalNum != 0 && info != NULL) {
-        crash_handler_set_text( 8, 4, 0xFF, 0x00, 0x00, "%s", "Exception occurred at address ");
+        crash_handler_set_text( 8, 4, 0xFF, 0x00, 0x00, "%s", "异常发生在地址 ");
         crash_handler_set_text(-1, 4, 0xFF, 0xFF, 0x00, "0x%016llX", (u64) info->si_addr);
-        crash_handler_set_text(-1, 4, 0xFF, 0x00, 0x00, "%s", " with error code ");
+        crash_handler_set_text(-1, 4, 0xFF, 0x00, 0x00, "%s", "，错误代码 ");
         crash_handler_set_text(-1, 4, 0xFF, 0x00, 0xFF, "0x%08X", (u32) signalNum);
-        crash_handler_set_text(-1, 4, 0xFF, 0x00, 0x00, "%s", ":");
+        crash_handler_set_text(-1, 4, 0xFF, 0x00, 0x00, "%s", "：");
         for (s32 i = 0; i != ARRAY_SIZE(sCrashHandlerErrors); ++i) {
             if (sCrashHandlerErrors[i].code == (u32) signalNum || sCrashHandlerErrors[i].code == 0) {
                 crash_handler_set_text( 8, 12, 0xFF, 0x00, 0x00, "%s", sCrashHandlerErrors[i].error);
@@ -345,13 +345,13 @@ static void crash_handler(const int signalNum, siginfo_t *info, UNUSED ucontext_
                 if (signalNum == SIGSEGV) {
                     char segFaultStr[255] = "";
                     if (info->si_code == SEGV_MAPERR) {
-                        snprintf(segFaultStr, 255, "The game tried to read unmapped memory at address %p", info->si_addr);
+                        snprintf(segFaultStr, 255, "游戏试图读取未映射的内存，地址 %p", info->si_addr);
 #ifdef __x86_64__
                     } else if (info->si_code == SEGV_ACCERR) {
-                        snprintf(segFaultStr, 255, "The game tried to %s at address %016llX", ((context->uc_mcontext.gregs[REG_ERR] & 0x2) != 0 ? "write" : "read"), (u64) info->si_addr);
+                        snprintf(segFaultStr, 255, "游戏试图 %s 地址 %016llX 但权限不够", ((context->uc_mcontext.gregs[REG_ERR] & 0x2) != 0 ? "写入" : "读取"), (u64) info->si_addr);
 #endif
                     } else {
-                        snprintf(segFaultStr, 255, "Unknown segmentation fault at address %p", info->si_addr);
+                        snprintf(segFaultStr, 255, "未知的段错误，地址 %p", info->si_addr);
                     }
 
                     crash_handler_set_text(-1, 12, 0xFF, 0xFF, 0xFF, "%s", segFaultStr);
@@ -363,12 +363,12 @@ static void crash_handler(const int signalNum, siginfo_t *info, UNUSED ucontext_
         }
 #endif
     } else {
-        crash_handler_set_text(8,  4, 0xFF, 0x00, 0x00, "%s", "An unknown exception occurred somewhere in the game's code.");
-        crash_handler_set_text(8, 12, 0x80, 0x80, 0x80, "%s", "Unable to retrieve the exception info.");
+        crash_handler_set_text(8,  4, 0xFF, 0x00, 0x00, "%s", "游戏代码中发生了一个未知异常（可能是玄学）。");
+        crash_handler_set_text(8, 12, 0x80, 0x80, 0x80, "%s", "无法获取异常信息，请检查你的运气。");
     }
 
     // Registers
-    crash_handler_set_text(8, 22, 0xFF, 0xFF, 0xFF, "%s", "Registers:");
+    crash_handler_set_text(8, 22, 0xFF, 0xFF, 0xFF, "%s", "寄存器信息：");
 #if defined(_WIN32) || (defined(__linux__) && defined(__x86_64__)) || (defined(__ANDROID__) && (defined(__aarch64__) || defined(__x86_64__)))
 #ifdef _WIN32
     if (ExceptionInfo && ExceptionInfo->ContextRecord) {
@@ -500,14 +500,14 @@ static void crash_handler(const int signalNum, siginfo_t *info, UNUSED ucontext_
 #endif
 #endif
     } else {
-        crash_handler_set_text(8, 30, 0x80, 0x80, 0x80, "%s", "Unable to access the registers.");
+        crash_handler_set_text(8, 30, 0x80, 0x80, 0x80, "%s", "无法访问寄存器（可能是系统害羞了）。");
     }
 #else
-    crash_handler_set_text(8, 30, 0x80, 0x80, 0x80, "%s", "Cannot access the registers on this system.");
+    crash_handler_set_text(8, 30, 0x80, 0x80, 0x80, "%s", "此系统不支持寄存器显示（摊手）。");
 #endif
 
     // Stack trace
-    crash_handler_set_text(8, 72, 0xFF, 0xFF, 0xFF, "%s", "Stack trace:");
+    crash_handler_set_text(8, 72, 0xFF, 0xFF, 0xFF, "%s", "调用栈（谁调用了谁？）：");
 #ifdef _WIN32
     if (ExceptionInfo && ExceptionInfo->ContextRecord) {
         static const char sGlobalFunctionIdentifier[] = "(sec1)(fl0x00)(ty20)(scl2)(nx0)0x";
@@ -588,11 +588,11 @@ static void crash_handler(const int signalNum, siginfo_t *info, UNUSED ucontext_
         for (s32 i = 1, j = 0; i < frames && j < BACK_TRACE_SIZE; ++i) {
             s32 y = 80 + j++ * 8;
             crash_handler_set_text( 8, y, 0xFF, 0xFF, 0x00, "0x%016llX", (PTR) stack[i]);
-            crash_handler_set_text(-1, y, 0xFF, 0xFF, 0xFF, "%s", ": ");
+            crash_handler_set_text(-1, y, 0xFF, 0xFF, 0xFF, "%s", " → ");
             for (Symbol *symbol = symbols;; symbol = symbol->next) {
                 if (symbol == NULL || symbol->next == NULL) {
                     if (j != 0) {
-                        crash_handler_set_text(-1, y, 0x00, 0xFF, 0xFF, "%s", "????");
+                        crash_handler_set_text(-1, y, 0x00, 0xFF, 0xFF, "%s", "（未知符号）");
                     }
                     break;
                 } else {
@@ -614,7 +614,7 @@ static void crash_handler(const int signalNum, siginfo_t *info, UNUSED ucontext_
         for (s32 i = 1, j = 0; i < traceSize && j < BACK_TRACE_SIZE; ++i) {
             s32 y = 80 + j++ * 8;
             crash_handler_set_text( 8, y, 0xFF, 0xFF, 0x00, "0x%016llX", (u64) strtoul(strstr(messages[i], "[") + 1, NULL, 16));
-            crash_handler_set_text(-1, y, 0xFF, 0xFF, 0xFF, "%s", ": ");
+            crash_handler_set_text(-1, y, 0xFF, 0xFF, 0xFF, "%s", " → ");
 
             // dladdr gives us function names if -rdynamic/-export-dynamic is set in compiler flags
             Dl_info info;
@@ -622,19 +622,19 @@ static void crash_handler(const int signalNum, siginfo_t *info, UNUSED ucontext_
                 crash_handler_set_text(-1, y, 0x00, 0xFF, 0xFF, "%s", info.dli_sname);
                 crash_handler_set_text(-1, y, 0xFF, 0xFF, 0xFF, " + 0x%lX", trace[i] - info.dli_saddr);
             } else {
-                crash_handler_set_text(-1, y, 0x00, 0xFF, 0xFF, "%s", "????");
+                crash_handler_set_text(-1, y, 0x00, 0xFF, 0xFF, "%s", "（未找到函数名，可能是优化掉了）");
             }
         }
 #endif
     } else {
-        crash_handler_set_text(8, 116, 0x80, 0x80, 0x80, "%s", "Unable to unwind the call stack.");
+        crash_handler_set_text(8, 116, 0x80, 0x80, 0x80, "%s", "无法展开调用栈（程序员忘记加调试信息了？）");
     }
 
     // Info
-    crash_handler_add_info_str(&pText, 315, -4 + (8 * 0), "Arch", ARCHITECTURE_STR);
-    crash_handler_add_info_str(&pText, 315, -4 + (8 * 1), "Network", (gNetworkType == NT_SERVER) ? "Server" : "Client");
-    crash_handler_add_info_str(&pText, 315, -4 + (8 * 2), "System", (gNetworkSystem == NULL) ? "null" : gNetworkSystem->name);
-    crash_handler_add_info_int(&pText, 315, -4 + (8 * 3), "Players", network_player_connected_count());
+    crash_handler_add_info_str(&pText, 315, -4 + (8 * 0), "架构", ARCHITECTURE_STR);
+    crash_handler_add_info_str(&pText, 315, -4 + (8 * 1), "网络模式", (gNetworkType == NT_SERVER) ? "服务器" : "客户端");
+    crash_handler_add_info_str(&pText, 315, -4 + (8 * 2), "网络系统", (gNetworkSystem == NULL) ? "空" : gNetworkSystem->name);
+    crash_handler_add_info_int(&pText, 315, -4 + (8 * 3), "玩家数", network_player_connected_count());
 
     s32 syncObjects = 0;
     if (gGameInited) {
@@ -642,19 +642,19 @@ static void crash_handler(const int signalNum, siginfo_t *info, UNUSED ucontext_
             if (so->o != NULL) { syncObjects++; }
         }
     }
-    crash_handler_add_info_int(&pText, 315, -4 + (8 * 4), "SyncObj", syncObjects);
+    crash_handler_add_info_int(&pText, 315, -4 + (8 * 4), "同步对象", syncObjects);
 
-    crash_handler_add_info_int(&pText, 380, -4 + (8 * 0), "Id", (int)gPcDebug.id & 0xFF);
-    crash_handler_add_info_int(&pText, 380, -4 + (8 * 1), "Ofs", (int)gPcDebug.bhvOffset & 0xFF);
+    crash_handler_add_info_int(&pText, 380, -4 + (8 * 0), "ID", (int)gPcDebug.id & 0xFF);
+    crash_handler_add_info_int(&pText, 380, -4 + (8 * 1), "偏移", (int)gPcDebug.bhvOffset & 0xFF);
     extern s16 gPrevFrameObjectCount;
-    crash_handler_add_info_int(&pText, 380, -4 + (8 * 4), "Objs", gPrevFrameObjectCount);
+    crash_handler_add_info_int(&pText, 380, -4 + (8 * 4), "物体数", gPrevFrameObjectCount);
 
-    crash_handler_add_info_int(&pText, 380, -4 + (8 * 2), "Mods", gActiveMods.entryCount);
+    crash_handler_add_info_int(&pText, 380, -4 + (8 * 2), "Mod数", gActiveMods.entryCount);
 
-    crash_handler_add_info_str(&pText, 380, -4 + (8 * 3), "OS", OS_NAME);
+    crash_handler_add_info_str(&pText, 380, -4 + (8 * 3), "操作系统", OS_NAME);
 
     // Mods
-    crash_handler_set_text(245, 64, 0xFF, 0xFF, 0xFF, "%s", "Mods:");
+    crash_handler_set_text(245, 64, 0xFF, 0xFF, 0xFF, "%s", "加载的Mod：");
     {
         s32 x = 245;
         s32 y = 72;
@@ -667,7 +667,7 @@ static void crash_handler(const int signalNum, siginfo_t *info, UNUSED ucontext_
     }
 
     // Packets
-    crash_handler_set_text(335, 64, 0xFF, 0xFF, 0xFF, "%s", "Packets:");
+    crash_handler_set_text(335, 64, 0xFF, 0xFF, 0xFF, "%s", "数据包历史：");
     {
         s32 x = 335;
         s32 y = 72;
@@ -689,7 +689,7 @@ static void crash_handler(const int signalNum, siginfo_t *info, UNUSED ucontext_
     }
 
     crash_handler_add_version_str(&pText, 335, 208);
-    crash_handler_add_info_str(&pText, 8, 208, "RemoteBhv", gLastRemoteBhv);
+    crash_handler_add_info_str(&pText, 8, 208, "远程行为", gLastRemoteBhv);
 
     // sounds
     if (SDL_WasInit(SDL_INIT_AUDIO) || SDL_InitSubSystem(SDL_INIT_AUDIO) == 0) {
