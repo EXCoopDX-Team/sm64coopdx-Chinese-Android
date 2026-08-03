@@ -7,7 +7,7 @@
 
 /* platform-specific functions and whatnot */
 #ifdef TARGET_ANDROID
-#define ANDROID_APPNAME "com.shangshanruo666.sm64coopdxcnsv"
+#define ANDROID_APPNAME "com.excoopdxteam.sm64excoop"
 #endif
 
 #ifdef _WIN32
