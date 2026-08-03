@@ -80,6 +80,5 @@ jobs:
                 content: ${{ job.status == 'failure' && '拉完了居然构建失败😡' || '' }}
                 description: |
                   Branch: `${{ github.ref_name }}`
-                  Commit: ${{ github.sha }} [！？提交交提？！](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
-                  触发/提交: ${{ github.actor }}
+                  [！？提交交提？！](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
                   [点击这里下载。游戏。](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
