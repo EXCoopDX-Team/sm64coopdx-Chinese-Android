@@ -13,13 +13,13 @@ android {
     compileSdkVersion 33
     defaultConfig {
         if (buildAsApplication) {
-            applicationId "com.shangshanruo666.sm64coopdxcnsv"
+            applicationId "com.excoopdxteam.sm64coopdx"
         }
         multiDexEnabled false
         minSdkVersion 24
         targetSdkVersion 33
         versionCode 42
-        versionName "1.5.1 (CN1.0.1)"
+        versionName "36.1 (CN)"
         ndk {
             moduleName = "app"
             ldLibs "log"
