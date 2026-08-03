@@ -188,11 +188,11 @@ void render_rom_setup_screen(void) {
     if (!sLoading) { init_loading_screen(); }
 
 #ifdef TARGET_ANDROID
-    loading_screen_set_segment_text("ROM not found again! Are you blind or just clumsy? Get into the file picker right now\nand pinpoint 'Super Mario 64 (U) [!].z64' precisely! \nDon't wander on the desktop, or I'll blow up the error dialog to full screen and blind you!");
+    loading_screen_set_segment_text("ROM not found again! Are you blind or just clumsy? Get into the file picker right now \n and pinpoint 'Super Mario 64 (U) [!].z64' precisely! \n Don't wander on the desktop, or I'll blow up the error dialog to full screen and blind you!");
     open_file_picker();
     u32 reopenDelay = 0;
 #else
-    loading_screen_set_segment_text("Still troubled by missing ROM? Still staring at error windows?\n Now, just one simple step – grab your mouse, drag the file onto the screen, and release!\nThat's it! Super Mario 64 EX COOP DX is ready to play!\nWhat are you waiting for? Act now! \n(Tip: If you drop the wrong file,this game will gift you a 'Blue Screen of Death' gift pack");
+    loading_screen_set_segment_text("Still troubled by missing ROM? Still staring at error windows? \n Now, just one simple step – grab your mouse, drag the file onto the screen, and release! \n That's it! Super Mario 64 EX COOP DX is ready to play! \n What are you waiting for? Act now! \n (Tip: If you drop the wrong file,this game will gift you a 'Blue Screen of Death' gift pack");
 #endif
 
     while (!gRomIsValid) {
