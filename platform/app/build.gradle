@@ -13,7 +13,7 @@ android {
     compileSdkVersion 33
     defaultConfig {
         if (buildAsApplication) {
-            applicationId "com.excoopdxteam.sm64coopdx"
+            applicationId "com.excoopdxteam.sm64excoop"
         }
         multiDexEnabled false
         minSdkVersion 24
