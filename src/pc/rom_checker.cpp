@@ -104,9 +104,9 @@ void rom_on_drop_file(const char *path) {
     if (strlen(path) > 0 && !is_rom_valid(path) && !hasDroppedInvalidFile) {
         hasDroppedInvalidFile = true;
 #ifdef TARGET_ANDROID
-        strcat(gCurrLoadingSegment.str, "\n\\#ffc000\\The file you last selected was not a valid, vanilla SM64 rom.");
+        strcat(gCurrLoadingSegment.str, "\n\\#ffc000\\大哥，您上次挑的那个ROM，既不是原版，也不是‘香草’，压根儿就是个冒牌货啊！");
 #else
-        strcat(gCurrLoadingSegment.str, "\n\\#ffc000\\The file you last dropped was not a valid, vanilla SM64 rom.");
+        strcat(gCurrLoadingSegment.str, "\n\\#ffc000\\你最后‘掉’进来的文件，可不是什么原味‘香草’SM64哦！这玩意儿‘效’果全无，怕不是被人偷偷‘掉包’成山寨货了吧！");
 #endif
     }
 }
