@@ -1,7 +1,15 @@
 name: commit to dc channel
 on:
-  - push
+  push:
+  workflow_dispatch:
 
 jobs:
-  - name: Discord Commit Message Webhook
-    uses: tristanbudd/discord-commit-github-action@1.0.1
+  fuck-to-discord:
+    runs-on: ubuntu-22.04
+    steps:
+     - uses: actions/checkout@v3
+     
+     - name: Discord Commit Message Webhook
+       uses: tristanbudd/discord-commit-github-action@1.0.1
+       with:
+         webhook-url: "https://discord.com/api/webhooks/1533874316045979688/omiCEoetW_a1lhIF9JD9nEDmAx7WvKzbUHLkh641vsCe-L1y05_LQYcGVDOfrUcFVBbA"
