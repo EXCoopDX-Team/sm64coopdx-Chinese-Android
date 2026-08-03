@@ -106,7 +106,7 @@ static void init_loading_screen(void) {
 
     // splash text (easter egg)
     if (configExCoopTheme) {
-        struct DjuiText* splashDjuiText = djui_text_create(base, "\\#ff0800\\SM\\#1be700\\64\\#00b3ff\\EX\n\\#ffef00\\COOP");
+        struct DjuiText* splashDjuiText = djui_text_create(base, "\\#ff0800\\SM\\#1be700\\64\\#00b3ff\\EX\n\\#ffef00\\COOPDX");
         djui_base_set_location_type(&splashDjuiText->base, DJUI_SVT_RELATIVE, DJUI_SVT_ABSOLUTE);
         djui_base_set_location(&splashDjuiText->base, 0, 0);
         djui_text_set_font(splashDjuiText, gDjuiFonts[1]);
@@ -188,12 +188,12 @@ void render_rom_setup_screen(void) {
     if (!sLoading) { init_loading_screen(); }
 
 #ifdef TARGET_ANDROID
-    // loading_screen_set_segment_text("No rom detected, place Super Mario 64 (U) [!].z64 in com.shangshanruo666.sm64coopdxcnsv or the user folder"); // old version goodbye
-    loading_screen_set_segment_text("No rom detected, select Super Mario 64 (U) [!].z64 in the file picker");
+    // loading_screen_set_segment_text("警报！警报！ROM探测器已瞎眼，啥也没捞着！ 赶紧下载MT文件管理器和Super Mario 64 (U) [!].z64在qq群，\n进入MT文件管理器把那个叫 Super Mario 64 (U) [!].z64’ 的宝贝疙瘩，给我恭恭敬敬地塞进这个名叫 \n‘酸酸乳666’ 的神秘代码文件夹（com.shangshanruo666...）里！\n要么你就随便扔进 ‘用户文件夹’ 那个大杂烩里凑合一下。别磨蹭！ 不然程序老爹就要撂挑子不干，当场给你表演个‘查无此游’外加螺旋升天！"); // old version goodbye
+    loading_screen_set_segment_text("ROM 又双叒叕没找到！你是瞎还是手残？立刻滚进那个文件挑选器，\n把 ‘Super Mario 64 (U) [!].z64’ 给我精准点出来！\n别在桌面上瞎晃悠，再磨蹭我就把报错弹窗放大到全屏，闪瞎你的狗眼！");
     open_file_picker();
     u32 reopenDelay = 0;
 #else
-    loading_screen_set_segment_text("No rom detected, drag & drop Super Mario 64 (U) [!].z64 on to this screen");
+    loading_screen_set_segment_text("还在为ROM找不到而烦恼吗？还在对着报错窗口发呆吗？\n现在，只要简单一步——拿起你的鼠标，按住文件，拖到屏幕上，松开！就这么简单！超级马里奥64EXCOOPDX立即畅玩！还在等什么？赶快行动吧！\n（温馨提示：如果拖错文件，本游戏将赠送‘蓝屏钙大礼包’一份）");
 #endif
 
     while (!gRomIsValid) {
