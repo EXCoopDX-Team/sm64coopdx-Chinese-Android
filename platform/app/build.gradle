@@ -64,7 +64,7 @@ android {
         }
     }
     preBuild.dependsOn copyGameAssets
-    namespace 'com.shangshanruo666.sm64coopdxcnsv'
+    namespace 'com.excoopdxteam.sm64excoop'
     lint {
         abortOnError false
     }
@@ -84,7 +84,7 @@ android {
             variant.outputs.each { output ->
                 def outputFile = output.outputFile
                 if (outputFile != null && outputFile.name.endsWith(".aar")) {
-                    def fileName = "com.shangshanruo666.sm64coopdxcnsv.aar";
+                    def fileName = "com.excoopdxteam.sm64excoop.aar";
                     output.outputFile = new File(outputFile.parent, fileName);
                 }
             }
