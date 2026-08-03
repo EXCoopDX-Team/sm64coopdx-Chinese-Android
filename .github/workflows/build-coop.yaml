@@ -3,7 +3,7 @@ name: Build Android Chinese Coop
 on:
     workflow_dispatch:
     push:
-        branches: [ android-dev ]
+        branches: [ Substitution-Version ]
     pull_request:
         branches: [ android-dev ]
 
