@@ -1,7 +1,6 @@
 name: commit to dc channel
 on:
   push:
-  workflow_dispatch:
 
 jobs:
   fuck-to-discord:
