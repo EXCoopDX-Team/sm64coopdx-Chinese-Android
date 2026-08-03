@@ -1,0 +1,7 @@
+name: commit to dc channel
+on:
+  - push
+
+jobs:
+  - name: Discord Commit Message Webhook
+    uses: tristanbudd/discord-commit-github-action@1.0.1
