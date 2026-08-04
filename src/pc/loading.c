@@ -106,7 +106,7 @@ static void init_loading_screen(void) {
 
     // splash text (easter egg)
     if (configExCoopTheme) {
-        struct DjuiText* splashDjuiText = djui_text_create(base, "\\#ff0800\\SM\\#1be700\\64\\#00b3ff\\EX\n\\#ffef00\\COOPDX");
+        struct DjuiText* splashDjuiText = djui_text_create(base, "\\#ff0800\\SM\\#1be700\\64\\#00b3ff\\EX\n\\#ffef00\\COOP\\#ff0000\\DX");
         djui_base_set_location_type(&splashDjuiText->base, DJUI_SVT_RELATIVE, DJUI_SVT_ABSOLUTE);
         djui_base_set_location(&splashDjuiText->base, 0, 0);
         djui_text_set_font(splashDjuiText, gDjuiFonts[1]);

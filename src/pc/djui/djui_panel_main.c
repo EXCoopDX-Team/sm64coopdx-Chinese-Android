@@ -25,7 +25,7 @@ static void djui_panel_main_quit(struct DjuiBase* caller) {
 }
 
 void djui_panel_main_create(struct DjuiBase* caller) {
-    struct DjuiThreePanel* panel = djui_panel_menu_create(configExCoopTheme ? "\\#ff0800\\SM\\#1be700\\64\\#00b3ff\\EX\n\\#ffef00\\COOP" : "", false);
+    struct DjuiThreePanel* panel = djui_panel_menu_create(configExCoopTheme ? "\\#ff0800\\SM\\#1be700\\64\\#00b3ff\\EX\n\\#ffef00\\COOP\\#ff000\\DX" : "", false);
     {
         struct DjuiBase* body = djui_three_panel_get_body(panel);
         {
@@ -66,7 +66,7 @@ void djui_panel_main_create(struct DjuiBase* caller) {
                 #ifdef COMPILE_TIME
                     get_version_with_build_date()
                 #else
-                    get_version()
+                    get_excoopdx_version()
                 #endif
             );
             djui_base_set_size_type(&version->base, DJUI_SVT_RELATIVE, DJUI_SVT_ABSOLUTE);

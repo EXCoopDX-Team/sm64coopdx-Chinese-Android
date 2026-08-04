@@ -15,6 +15,15 @@ const char* get_version(void) {
     );
     return sVersionString;
 }
+
+const char* get_excoopdx_version(void) {
+    snprintf(
+        sExCoopDxStr, MAX_VERSION_LENGTH,
+        "%s", SM64EXCOOPDX_VERSION
+    );
+    return sExCoopDxStr
+}
+
 #ifdef COMPILE_TIME
 const char* get_version_with_build_date(void) {
     snprintf(
