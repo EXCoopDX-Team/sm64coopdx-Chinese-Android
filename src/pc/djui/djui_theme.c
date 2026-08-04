@@ -40,7 +40,7 @@ static struct DjuiTheme sDjuiThemeLight = {
         }
     },
     .panels = {
-       n .hudFontHeader = false
+        .hudFontHeader = false
     }
 };
 
