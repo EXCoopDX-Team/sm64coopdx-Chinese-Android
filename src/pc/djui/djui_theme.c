@@ -40,7 +40,7 @@ static struct DjuiTheme sDjuiThemeLight = {
         }
     },
     .panels = {
-        .hudFontHeader = false
+       n .hudFontHeader = false
     }
 };
 
@@ -85,6 +85,29 @@ static struct DjuiTheme sDjuiThemeDark = {
     },
     .panels = {
         .hudFontHeader = false
+    }
+};
+
+// 78 Theme
+static struct DjuiTheme sDjuiThemeDick = {
+    .id = "DICK_THEME",
+    .name = "DICK_THEME",
+    .interactables = {
+        .textColor = { 11, 11, 11, 255 },
+        .disabledTextColor = { 60, 60, 60, 255 },
+        .defaultRectColor = { 126, 188, 200, 190 },
+        .cursorDownRectColor = { 11, 11, 11, 1 },
+        .hoveredRectColor = { 99, 188, 12, 155 },
+        .defaultBorderColor = { 119, 0, 200, 255 },
+        .cursorDownBorderColor = { 0, 255, 255, 255 },
+        .hoveredBorderColor = { 200, 12, 138, 255 }
+    },
+    .threePanels = {
+        .rectColor = { 130, 200, 0, 1 },
+        .borderColor = { 100, 200, 28, 201 }
+    },
+    .panels = {
+        .hudFontHeader = true
     }
 };
 
@@ -225,7 +248,8 @@ struct DjuiTheme* gDjuiThemes[] = {
     &sDjuiThemeDark,
     &sDjuiThemeFileSelect,
     &sDjuiThemeMario,
-    &sDjuiThemeOdyssey
+    &sDjuiThemeOdyssey,
+    &sDjuiThemeDick
 };
 
 struct DjuiColor djui_theme_shade_color(struct DjuiColor color, f32 mult) {
