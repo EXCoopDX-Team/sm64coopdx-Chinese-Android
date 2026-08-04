@@ -21,7 +21,7 @@ const char* get_excoopdx_version(void) {
         sExCoopDxStr, MAX_VERSION_LENGTH,
         "%s", SM64EXCOOPDX_VERSION
     );
-    return sExCoopDxStr
+    return sExCoopDxStr;
 }
 
 #ifdef COMPILE_TIME
