@@ -58,7 +58,7 @@ static bool loading_screen_on_render(struct DjuiBase* base) {
     djui_base_set_size(base, windowWidth, windowHeight);
 
     // splash logo
-    if (configExCoopTheme) {
+    if (!configExCoopTheme) {
         djui_base_set_location(&sLoading->splashText->base, 0, loadingDescY1 - sLoading->splashText->base.height.value);
     } else {
         djui_base_set_location(&sLoading->splashImage->base, 0, loadingDescY1 - sLoading->splashImage->base.height.value);
@@ -105,7 +105,7 @@ static void init_loading_screen(void) {
     djui_base_init(NULL, base, loading_screen_on_render, loading_screen_destroy);
 
     // splash text (easter egg)
-    if (configExCoopTheme) {
+    if (!configExCoopTheme) {
         struct DjuiText* splashDjuiText = djui_text_create(base, "\\#ff0800\\SM\\#1be700\\64\\#00b3ff\\EX\n\\#ffef00\\COOP\\#ff0000\\DX");
         djui_base_set_location_type(&splashDjuiText->base, DJUI_SVT_RELATIVE, DJUI_SVT_ABSOLUTE);
         djui_base_set_location(&splashDjuiText->base, 0, 0);

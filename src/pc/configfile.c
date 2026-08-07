@@ -293,7 +293,7 @@ unsigned int configTouchControlAlpha              = 255;
 bool         configSkipPackGeneration             = false;
 
 // secrets
-bool configExCoopTheme = true;
+bool configExCoopTheme = false;
 
 static const struct ConfigOption options[] = {
     // window settings
