@@ -35,7 +35,7 @@ static void djui_font_normal_render_char(const char* c) {
 }
 
 static f32 djui_font_normal_char_width(const char* c) {
-    if (*c == ' ') { return !configExCoopTheme ? 6 / 32.0f : 0.30f; }
+    if (*c == ' ') { return configExCoopTheme ? 6 / 32.0f : 0.30f; }
     extern const f32 font_normal_widths[];
     return djui_unicode_get_sprite_width(c, font_normal_widths, 32.0f);
 }
@@ -95,7 +95,7 @@ static f32 djui_font_title_char_width(const char* text) {
     c = djui_unicode_get_base_char(text);
     extern const f32 font_title_widths[];
 
-    f32 width = font_title_widths[(u8)c - '!'] * (!configExCoopTheme ? 1.0f : 1.1f);
+    f32 width = font_title_widths[(u8)c - '!'] * (configExCoopTheme ? 1.0f : 1.1f);
 
     if (width <= 0.0f) {
         return 0.9375f;

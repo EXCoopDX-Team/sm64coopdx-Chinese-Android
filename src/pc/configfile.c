@@ -293,7 +293,7 @@ unsigned int configTouchControlAlpha              = 255;
 bool         configSkipPackGeneration             = false;
 
 // secrets
-bool configExCoopTheme = false;
+bool configExCoopTheme = true;
 
 static const struct ConfigOption options[] = {
     // window settings
@@ -571,7 +571,7 @@ struct SecretConfigOption {
 };
 
 static struct SecretConfigOption secret_options[] = {
-    {.name = "ex_coop_theme", .type = CONFIG_TYPE_BOOL, .boolValue = &configExCoopTheme},
+    {.name = "xpwkskjcxorkkwoamkddjnnd", .type = CONFIG_TYPE_BOOL, .boolValue = &configExCoopTheme},
 };
 
 // FunctionConfigOption functions
