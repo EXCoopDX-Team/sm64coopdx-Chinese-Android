@@ -22,18 +22,18 @@
 #endif
 
 #ifdef DEVELOPMENT
-#define GAME_NAME "sm64excoopdx-dev"
+#define GAME_NAME "sm64coopdx-dev"
 #define WINDOW_NAME "Super Mario 64 EX Coop Deluxe (DEV)"
 #elif !defined(VERSION_US)
-#define GAME_NAME "sm64excoopdx-intl"
+#define GAME_NAME "sm64coopdx-intl"
 #define WINDOW_NAME "Super Mario 64 EX Coop Deluxe (INTL)"
 #else
 #ifdef __ANDROID__
-#define GAME_NAME "sm64excoopdx-android"
+#define GAME_NAME "sm64coopdx-android"
 #else
-#define GAME_NAME "sm64excoopdx"
+#define GAME_NAME "sm64coopdx"
 #endif
-#define WINDOW_NAME "Super Mario 64 EX Coop Deluxe"
+#define WINDOW_NAME "Super Mario 64 Coop Deluxe"
 #endif
 
 #define MAX_VERSION_LENGTH 128
