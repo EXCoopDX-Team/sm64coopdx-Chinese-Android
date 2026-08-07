@@ -29,7 +29,7 @@
 #define WINDOW_NAME "Super Mario 64 EX Coop Deluxe (INTL)"
 #else
 #ifdef __ANDROID__
-#define GAME_NAME "sm64coopdx-android"
+#define GAME_NAME "sm64coop-android"
 #else
 #define GAME_NAME "sm64coopdx"
 #endif
